@@ -1,34 +1,25 @@
 if(F){
-  setwd("~/Documents/Github/blackmarbler")
-  
-  roxygen2::roxygenise("~/Documents/Github/blackmarbler")
-  
-  pkgdown::build_favicons(pkg = "~/Documents/Github/blackmarbler", 
-                          overwrite = FALSE)
-  
+  setwd("~/Documents/Github/ulex")
+
+  roxygen2::roxygenise("~/Documents/Github/ulex")
+
   pkgdown::clean_site()
-  
-  usethis::use_pkgdown()
-  pkgdown::build_site()
-  pkgdown::build_site_github_pages()
-  #usethis::use_pkgdown_github_pages()
-  
-  usethis::use_testthat(3)
-  
-  usethis::use_pkgdown()
-  usethis::use_github_pages()
+  pkgdown::deploy_to_branch()
   usethis::use_pkgdown_github_pages() #####
   usethis::use_github_action_check_standard()
-  
+
   ## Comand line code for building and checking package
   #R CMD build --as-cran "~/Documents/Github/googletraffic"
   #R CMD check --as-cran "~/Documents/Github/googletraffic/googletraffic_0.0.0.9000.tar.gz"
-  
-  devtools::check("~/Documents/Github/blackmarbler")
-  
-  devtools::check_win_devel("~/Documents/Github/blackmarbler")
-  devtools::check_win_release("~/Documents/Github/blackmarbler")
-  devtools::check_win_oldrelease("~/Documents/Github/blackmarbler")
-  
-  devtools::build("~/Documents/Github/blackmarbler")
+
+  pkgdown::build_favicons(pkg = "~/Documents/Github/rsocialwatcher",
+                          overwrite = FALSE)
+
+  devtools::check("~/Documents/Github/ulex")
+
+  devtools::check_win_devel("~/Documents/Github/rsocialwatcher")
+  devtools::check_win_release("~/Documents/Github/rsocialwatcher")
+  devtools::check_win_oldrelease("~/Documents/Github/rsocialwatcher")
+
+  devtools::build("~/Documents/Github/ulex")
 }

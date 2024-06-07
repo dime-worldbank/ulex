@@ -1,29 +1,50 @@
 # Augment Gazetteer
 
-# library(raster)
-# library(rgdal)
-# library(dplyr)
-# library(readr)
-# library(quanteda)
-# library(stringr)
-# library(stringi)
-# library(rgeos)
-# library(hunspell)
-#library(spacyr) # NEED THESE; UNCOMMENT
-#spacy_initialize()
+#' Augments Landmark Gazetteer
+#'
+#' @param landmarks `sf` spatial points dataframe of landmarks.
+#' @param landmarks.name_var Name of variable indicating name of landmark
+#' @param landmarks.type_var Name of variable indicating type of landmark
+#' @param grams.min_words Minimum number of words in name to make n/skip-grams out of name
+#' @param grams.max_words Maximum number of words in name to make n/skip-grams out of name. Setting a cap helps to reduce spurious landmarks that may come out of really long names
+#' @param grams.skip_gram_first_last_word_match For skip-grams, should first and last word be the same as the original word? (TRUE/FASLE)
+#' @param grams.add_only_if_name_new
+#' @param grams.add_only_if_specific
+#' @param types_rm If landmark has one of these types, remove - unless 'types_always_keep' or 'names_always_keep' prevents removing.
+#' @param types_rm.except_with_type landmark types to always keep. This parameter only becomes relevant in cases where a landmark has more than one type. If a landmark has both a "types_rm" and a "types_always_keep" landmark, this landmark will be kept.
+#' @param types_rm.except_with_name landmark names to always keep. This parameter only becomes relevant in cases where a landmark is one of "types_rm" Here, we keep the landmark if "names_always_keep" is somewhere in the name. For example, if the landmark is a road but has flyover in the name, we may want to keep the landmark as flyovers are small spatial areas.
+#' @param parallel.sep_slash
+#' @param parallel.rm_begin If a landmark name begins with one of these words, add a landmark that excludes the word.
+#' @param parallel.rm_end If a landmark name ends with one of these words, add a landmark that excludes the word.
+#' @param parallel.word_diff
+#' @param parallel.rm_begin_iftype If a landmark name begins with one of these words, add a landmark that excludes the word if the landmark is a certain type.
+#' @param parallel.rm_end_iftype If a landmark name ends with one of these words, add a landmark that excludes the word if the landmark is a certain type.
+#' @param parallel.word_diff_iftype If the landmark includes one of these words, add a landmarks that swap the word for the other words. Only do if the landmark is a certain type.
+#' @param parallel.add_only_if_name_new
+#' @param parallel.add_only_if_specific
+#' @param parallel.word_begin_addtype
+#' @param parallel.word_end_addtype If the landmark ends with one of these words, add the type. For example, if landmark is "X stage", this indicates the landmark is a bus stage. Adding the "stage" to landmark ensures that the type is reflected.
+#' @param rm.contains Remove the landmark if it contains one of these words. Implemented after N/skip-grams and parallel landmarks are added.
+#' @param rm.name_begin Remove the landmark if it begins with one of these words. Implemented after N/skip-grams and parallel landmarks are added.
+#' @param rm.name_end Remove the landmark if it ends with one of these words. Implemented after N/skip-grams and parallel landmarks are added.
+#' @param pos_rm.all
+#' @param pos_rm.except_type
+#' @param quiet Print progress of function. (Default: `TRUE`).
+#'
+#' @return `sf` spatial point dataframe of landmarks.
+#' @export
 
 augment_gazetteer <- function(landmarks,
                               landmarks.name_var = "name",
                               landmarks.type_var = "type",
-                              close_dist_thresh = 500, # NOT IMPLEMENTED YET
+                              grams.min_words = 3,
+                              grams.max_words = 6,
+                              grams.skip_gram_first_last_word_match = TRUE,
+                              grams.add_only_if_name_new = FALSE,
+                              grams.add_only_if_specific = FALSE,
                               types_rm = c("route", "road", "toilet", "political", "locality", "neighborhood", "area", "section of populated place"),
                               types_rm.except_with_type = c("flyover", "round about", "roundabout"),
                               types_rm.except_with_name = c("flyover", "round about", "roundabout"),
-                              grams.min_words = 3,
-                              grams.max_words = 6,
-                              grams.skip_gram_first_last_word_match = T,
-                              grams.add_only_if_name_new = F,
-                              grams.add_only_if_specific = F,
                               parallel.sep_slash = T,
                               parallel.rm_begin = c(stopwords("en"), c("near","at","the", "towards", "near")),
                               parallel.rm_end = c("bar", "shops", "restaurant","sports bar","hotel", "bus station"),
@@ -31,8 +52,8 @@ augment_gazetteer <- function(landmarks,
                               parallel.rm_begin_iftype = NULL,
                               parallel.rm_end_iftype = list(list(words = c("stage", "bus stop"), type = "transit_station")),
                               parallel.word_diff_iftype = list(list(words = c("stage", "bus stop", "bus station"), type = "transit_station")),
-                              parallel.add_only_if_name_new = F,
-                              parallel.add_only_if_specific = F,
+                              parallel.add_only_if_name_new = FALSE,
+                              parallel.add_only_if_specific = FALSE,
                               parallel.word_begin_addtype = NULL,
                               parallel.word_end_addtype = list(list(words = c("stage", "bus stop", "bus station"), type = "stage")),
                               rm.contains = c("road", "rd"),
@@ -42,58 +63,12 @@ augment_gazetteer <- function(landmarks,
                               pos_rm.except_type = list(list(pos = c("NOUN", "PROPN"),
                                                              type = c("bus", "restaurant", "bank"),
                                                              name = c("parliament"))),
-                              crs_distance = 4326,
-                              crs_out = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0",
-                              quiet = T){
+                              quiet = TRUE){
 
-  # DESCRIPTION: Augments landmark gazetteer
-  # ARGS:
-  # landmarks: Spatial Points Dataframe (or sf equivalent) of landmarks.
-  # landmarks.name_var: Name of variable indicating name of landmark
-  # landmarks.type_var: Name of variable indicating type of landmark
-  # grams_min_words: Minimum number of words in name to make n/skip-grams out of name
-  # grams_max_words: Maximum number of words in name to make n/skip-grams out of name.
-  #                  Setting a cap helps to reduce spurious landmarks that may come
-  #                  out of really long names
-  # grams.skip_gram_first_last_word_match: For skip-grams, should first and last word be the
-  #                             same as the original word? (TRUE/FASLE)
-  # types_rm: If landmark has one of these types, remove - unless 'types_always_keep'
-  #               or 'names_always_keep' prevents removing.
-  # types_rm.except_with_type: landmark types to always keep. This parameter only becomes
-  #                    relevant in cases where a landmark has more than one type.
-  #                    If a landmark has both a "types_rm" and a "types_always_keep"
-  #                    landmark, this landmark will be kept.
-  # types_rm.except_with_name: landmark names to always keep. This parameter only
-  #                    becomes relevant in cases where a landmark is one of
-  #                    "types_rm" Here, we keep the landmark if "names_always_keep"
-  #                    is somewhere in the name. For example, if the landmark is
-  #                    a road but has flyover in the name, we may want to keep
-  #                    the landmark as flyovers are small spatial areas.
-  # parallel.rm_begin: If a landmark name begins with one of these words, add a
-  #                    landmark that excludes the word.
-  # parallel.rm_end: If a landmark name ends with one of these words, add a
-  #                    landmark that excludes the word.
-  # parallel.rm_begin_iftype: If a landmark name begins with one of these words, add a
-  #                           landmark that excludes the word if the landmark is a
-  #                           certain type.
-  # parallel.rm_end_iftype: If a landmark name ends with one of these words, add a
-  #                         landmark that excludes the word if the landmark is a
-  #                         certain type.
-  # parallel.word_diff_iftype: If the landmark includes one of these words, add a
-  #                            landmarks that swap the word for the other words.
-  #                            Only do if the landmark is a certain type.
-  # parallel.word_end_addtype: If the landmark ends with one of these words,
-  #                            add the type. For example, if landmark is "X stage",
-  #                            this indicates the landmark is a bus stage. Adding the
-  #                            "stage" to landmark ensures that the type is reflected.
-  # rm.contains: Remove the landmark if it contains one of these words. Implemented
-  #              after N/skip-grams and parallel landmarks are added.
-  # rm.name_begin: Remove the landmark if it begins with one of these words. Implemented
-  #              after N/skip-grams and parallel landmarks are added.
-  # rm.name_end: Remov ethe landmark if it ends with one of these words. Implemented
-  #              after N/skip-grams and parallel landmarks are added.
-  # crs_distance: Coordiante reference system to use for distance calculations.
-  # crs_out: Coordinate reference system for output.
+
+  ## Defaults
+  crs_distance <- 4326
+  crs_out      <- 4326
 
   # 1. Checks ------------------------------------------------------------------
 

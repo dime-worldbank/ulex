@@ -54,12 +54,12 @@ The package contains two main functions:
 - **augment_gazetteer:** The backbone of locating events is looking up
   location references in a gazetteer, or geographic dictionary. The
   `augment_gazetteer` facilitates cleaning a gazetteer that may have
-  been constructed from sources such as [Open Street
-  Maps](https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html),
+  been constructed from sources such as
+  [OpenStreetMaps](https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html),
   [Geonames](https://github.com/ropensci/geonames) or [Google
   Maps](https://www.rdocumentation.org/packages/googleway/versions/2.7.1/topics/google_places).
 
-- **locate_event:** takes text as input and returns the location of the
+- **locate_event:** Takes text as input and returns the location of the
   relevant event. Key inputs include the text to geoparse, a gazetteer
   of landmarks, spatial files of roads and areas (e.g., neighborhoods)
   and a list of event words.
@@ -87,7 +87,7 @@ source("~/Documents/Github/ulex/R/locate_event.R")
 ``` r
 library(geodata)
 library(osmdata)
-library(leaflet)
+library(ggplot2)
 library(stringr)
 ```
 
@@ -214,6 +214,27 @@ head(landmarks_sf)
 #> 30092033 POINT (36.78867 -1.299975)
 ```
 
+## Map locations
+
+``` r
+ggplot() +
+  geom_sf(data = roads_sf,
+          color = "forestgreen",
+          linewidth = 0.6) +
+  geom_sf(data = landmarks_sf,
+          color = "blue",
+          size = 0.1,
+          alpha = 0.5) +
+  geom_sf(data = nbo_sf,
+          fill = "gray",
+          color = "black",
+          linewidth = 0.5,
+          alpha = 0.2) +
+  theme_void()
+```
+
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
+
 ## Augment Gazetteer
 
 ``` r
@@ -223,7 +244,8 @@ landmarks_aug_sf <- augment_gazetteer(landmarks_sf)
 ## Locate Events
 
 ``` r
-tweets <- c("crash occurred near garden city on thika road on your way towards roysambu",
+tweets <- c("crash occurred near garden city on thika road on your way towards 
+            roysambu",
             "crash at garden city",
             "crash at intersection of juja road and outer ring rd",
             "crash occured near roysambu on thika rd",
@@ -233,7 +255,8 @@ crashes_sf <- locate_event(text = tweets,
                            landmark_gazetteer = landmarks_aug_sf,
                            areas = nbo_sf,
                            roads = roads_sf,
-                           event_words = c("accident", "crash", "collision", "wreck", "overturn"))
+                           event_words = c("accident", "crash", "collision", 
+                                           "wreck", "overturn"))
 
 # leaflet() %>%
 #   addTiles() %>%

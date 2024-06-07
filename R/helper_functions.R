@@ -2,37 +2,18 @@
 
 ##### ******************************************************************** #####
 # OTHER ------------------------------------------------------------------------
+#' Check if a dataframe has zero observations
+#'
+#' @noRd
+#' @export
 nrow_0 <- function(df){
   return(nrow(df) %in% 0)
 }
 
-rbind_uniqueid <- function(...){
-  # rbind sp
-
-  if(length(c(...)) %in% 0){
-    out <- NULL
-  } else if(length((c(...))) %in% 1){
-    out <- c(...)[1][[1]]
-  } else{
-    out <- raster::bind(...)
-  }
-
-  return(out)
-}
-
-bind_rows_sf <- function(...){
-  # Description: Bind rows of spatial features
-
-  sf_list <- rlang::dots_values(...)[[1]]
-
-  sfg_list_column <- lapply(sf_list, function(sf) sf$geometry[[1]]) %>% st_sfc
-  df <- lapply(sf_list, function(sf) st_set_geometry(sf, NULL)) %>% bind_rows
-
-  sf_appended <- st_sf(data.frame(df, geom=sfg_list_column))
-
-  return(sf_appended)
-}
-
+#' Make N-Gram dataframe in chunks
+#'
+#' @noRd
+#' @export
 make_gram_df_chunks <- function(df, chunk_size, FUN, quiet){
   # The function for making the gram dataframes can be memory intensive.
   # Here, we wrap around the function and make it into chunks.
@@ -53,27 +34,10 @@ make_gram_df_chunks <- function(df, chunk_size, FUN, quiet){
   return(gram_df_all)
 }
 
-# get_utm_epsg <- function(point) {
-#   # Function to determine UTM zone EPSG code from WGS84 coordinates
-#
-#   point <- point %>% st_transform(4326)
-#
-#   lon <- st_coordinates(point)[, 1]
-#   lat <- st_coordinates(point)[, 2]
-#
-#   zone <- ceiling((lon + 180) / 6)
-#   hemisphere <- ifelse(lat >= 0, "N", "S")
-#   utm_zone <- paste0(zone, hemisphere)
-#
-#   if (hemisphere == "N") {
-#     epsg_code <- 32600 + zone
-#   } else {
-#     epsg_code <- 32700 + zone
-#   }
-#
-#   return(epsg_code)
-# }
-
+#' Convert sf object to dataframe with lat and lon as variables
+#'
+#' @noRd
+#' @export
 sf_to_df <- function(data_sf,
                      lon_name = "lon",
                      lat_name = "lat"){
@@ -92,6 +56,10 @@ sf_to_df <- function(data_sf,
   return(data_df)
 }
 
+#' Add latitude and longitude variables to sf object
+#'
+#' @noRd
+#' @export
 add_latlon_vars_to_sf <- function(data_sf,
                                   lon_name = "lon",
                                   lat_name = "lat"){
@@ -115,6 +83,10 @@ add_latlon_vars_to_sf <- function(data_sf,
 
 }
 
+#' Drop units
+#'
+#' @noRd
+#' @export
 drop_units <- function(x) {
   # https://github.com/r-quantities/units/issues/68#issuecomment-341697927
   class(x) <- setdiff(class(x), "units")
@@ -122,6 +94,10 @@ drop_units <- function(x) {
   x
 }
 
+#' Extract dominant spatial cluster
+#'
+#' @noRd
+#' @export
 extract_dominant_cluster_all <- function(landmarks,
                                          close_thresh_km = .9, #0.75,
                                          cluster_thresh = 0.624,
@@ -204,19 +180,19 @@ extract_dominant_cluster_all <- function(landmarks,
     #df_chunk_size = 1000
     #starts <- seq(from = 1, to = N_df, by = df_chunk_size)
 
-    rbind_uniqueid <- function(...){
-      # rbind sp
-
-      if(length(c(...)) %in% 0){
-        out <- NULL
-      } else if(length((c(...))) %in% 1){
-        out <- c(...)[1][[1]]
-      } else{
-        out <- bind(...)
-      }
-
-      return(out)
-    }
+    # rbind_uniqueid <- function(...){
+    #   # rbind sp
+    #
+    #   if(length(c(...)) %in% 0){
+    #     out <- NULL
+    #   } else if(length((c(...))) %in% 1){
+    #     out <- c(...)[1][[1]]
+    #   } else{
+    #     out <- bind(...)
+    #   }
+    #
+    #   return(out)
+    # }
 
     landmarks_df_far_few <- lapply(as.character(unique(landmarks_df_far_few$name)), function(name){
 
@@ -279,6 +255,10 @@ extract_dominant_cluster_all <- function(landmarks,
   return(landmarks_gs)
 }
 
+#' Extract dominant spatial cluster
+#'
+#' @noRd
+#' @export
 extract_dominant_cluster <- function(sdf,
                                      close_thresh_km = 0.9, #0.75,
                                      cluster_thresh = 0.624,
@@ -434,6 +414,10 @@ extract_dominant_cluster <- function(sdf,
   return(sdf_out)
 }
 
+#' Restrict landmarks by location
+#'
+#' @noRd
+#' @export
 restrict_landmarks_by_location <- function(landmark_match,
                                            landmark_gazetteer,
                                            sdf,
@@ -472,16 +456,10 @@ restrict_landmarks_by_location <- function(landmark_match,
               landmark_gazetteer = landmark_gazetteer))
 }
 
-
-
-
-
-
-
-
-
-
-
+#' Restrict to tier 1 landmarks
+#'
+#' @noRd
+#' @export
 restrict_gaz_tier1_landmarks <- function(landmark_match,
                                          landmark_gazetteer){
 
@@ -539,37 +517,19 @@ restrict_gaz_tier1_landmarks <- function(landmark_match,
   return(landmark_gazetteer)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#' If Location has a small extent, make a point
+#'
+#' @noRd
+#' @export
 make_point_small_extent <- function(sdf,
                                     dist_tresh = 500){
 
   sdf_extent <- extent(sdf)
-  max_extent_dist <- sqrt((sdf_extent@xmin - sdf_extent@xmax)^2 + (sdf_extent@ymin - sdf_extent@ymax)^2)
+
+  max_extent_dist <- as.numeric(geodist(x = c(sdf_extent@xmin,
+                                          sdf_extent@ymin),
+                                    y = c(sdf_extent@xmax,
+                                          sdf_extent@ymax)))
 
   if(max_extent_dist < dist_tresh){
     #sdf <- sdf %>% gCentroid()
@@ -589,6 +549,11 @@ make_point_small_extent <- function(sdf,
 
 ##### ******************************************************************** #####
 # SEARCHING FOR LOCATIONS ------------------------------------------------------
+
+#' Check if phrase is in sentence with an exact match
+#'
+#' @noRd
+#' @export
 phrase_in_sentence_exact <- function(sentence,
                                      phrase_list){
 
@@ -623,6 +588,10 @@ phrase_in_sentence_exact <- function(sentence,
   return(locations_df)
 }
 
+#' Check if phrase is in sentence using a fuzzy match, for one element
+#'
+#' @noRd
+#' @export
 phrase_in_sentence_fuzzy_i <- function(sentence,
                                        phrase_list,
                                        fuzzy_match_landmark.min.word.length,
@@ -746,6 +715,10 @@ phrase_in_sentence_fuzzy_i <- function(sentence,
   return(locations_df)
 }
 
+#' Check if phrase is in sentence using a fuzzy match
+#'
+#' @noRd
+#' @export
 phrase_in_sentence_fuzzy <- function(text_i,
                                      landmark_list,
                                      fuzzy_match_landmark.min.word.length,
@@ -782,6 +755,10 @@ phrase_in_sentence_fuzzy <- function(text_i,
   return(df)
 }
 
+#' Determine index of phrase in sentence
+#'
+#' @noRd
+#' @export
 phrase_locate <- function(phrase, sentence){
   # Description: Takes a word or phrase and a sentence as input and returns the
   # start and end word location of the phrase within the sentence. For example,
@@ -826,6 +803,10 @@ phrase_locate <- function(phrase, sentence){
   return(phrase_location_df)
 }
 
+#' Determine starting character of word
+#'
+#' @noRd
+#' @export
 tweet_word_start_character <- function(i, tweet_words_loc){
   # Supports: phrase_locate function
   if(i == 1){
@@ -835,6 +816,10 @@ tweet_word_start_character <- function(i, tweet_words_loc){
   }
 }
 
+#' Extract location after words
+#'
+#' @noRd
+#' @export
 extract_locations_after_words <- function(word_loc,
                                           text,
                                           landmarks){
@@ -933,6 +918,10 @@ extract_locations_after_words <- function(word_loc,
 ##### ******************************************************************** #####
 # SUBSET LOCATIONS -------------------------------------------------------------
 
+#' Remove landmark entry by type of landmark
+#'
+#' @noRd
+#' @export
 remove_gaz_by_type <- function(landmark_match,
                                landmark_gazetteer,
                                type_list){
@@ -940,8 +929,6 @@ remove_gaz_by_type <- function(landmark_match,
   # gazetteer entry by type. If nrow=0, then keep original gazetteer entries
   # (no subsetting); if nrow>0, restrict to ones with type and checks if
   # new entry grouping should be considered general/specific
-  # Does not remove entries in their entirety!
-  # TODO: Inefficient... rbind with full gazetteer...
 
   type_regex <- type_list %>% unlist %>% as.vector() %>% paste(collapse = "|")
 
@@ -970,7 +957,10 @@ remove_gaz_by_type <- function(landmark_match,
   return(landmark_gazetteer)
 }
 
-
+#' Remove general landmarks
+#'
+#' @noRd
+#' @export
 remove_general_landmarks <- function(landmark_match,
                                      landmark_gazetteer){
 
@@ -1027,9 +1017,10 @@ remove_general_landmarks <- function(landmark_match,
               landmark_gazetteer = landmark_gazetteer))
 }
 
-# TODO: landmark_road_overlap and exact_fuzzy_overlap could be made into one
-# function where have a parameter for the (1) variable and (2) which one wins,
-# if make this into something where only two types
+#' Resolving name overlaps with landmarks, roads, and areas
+#'
+#' @noRd
+#' @export
 landmark_road_overlap <- function(locations_in_tweet){
   # Landmark intersects with road OR area, choose road
 
@@ -1066,6 +1057,10 @@ landmark_road_overlap <- function(locations_in_tweet){
 
 }
 
+#' Preference exact matches over fuzzy matches
+#'
+#' @noRd
+#' @export
 exact_fuzzy_overlap <- function(locations_in_tweet){
   # If exact intersects with fuzzy, choose exact
   if((TRUE %in% locations_in_tweet$exact_match) & (FALSE %in% locations_in_tweet$exact_match)){
@@ -1097,6 +1092,10 @@ exact_fuzzy_overlap <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
+#' Check for phrase overlaps
+#'
+#' @noRd
+#' @export
 phase_overlap <- function(locations_in_tweet){
   # Phase within Phrase
   # If phrase within another phrase, choose longer one (pick "garden city mall" over "garden city").
@@ -1118,6 +1117,10 @@ phase_overlap <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
+#' Preference exact over fuzzy matches
+#'
+#' @noRd
+#' @export
 exact_fuzzy_startendsame <- function(locations_in_tweet){
 
   # Same Start/End, choose correctly spelled
@@ -1145,6 +1148,10 @@ exact_fuzzy_startendsame <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
+#' Resolve name clashes between landmarks and roads
+#'
+#' @noRd
+#' @export
 landmark_road_samename <- function(locations_in_tweet){
   # If same name both road and landmark, drop landmark
   if(("landmark" %in% locations_in_tweet$location_type) & ("road" %in% locations_in_tweet$location_type)){
@@ -1158,6 +1165,10 @@ landmark_road_samename <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
+#' Extract intersections
+#'
+#' @noRd
+#' @export
 extract_intersections <- function(locations_in_tweet,
                                   roads,
                                   crs_distance,
@@ -1178,7 +1189,6 @@ extract_intersections <- function(locations_in_tweet,
   # Find Road Intersection
   # Iterates through all 2-road combinations and checks for intersections. Uses
   # the intersection if intersection points are close together.
-  # TODO: what if road self intersects?
 
   locations_in_tweet_roads <- locations_in_tweet[locations_in_tweet$location_type %in% "road",]
 
@@ -1282,6 +1292,10 @@ extract_intersections <- function(locations_in_tweet,
 
 }
 
+#' Preference specific landmarks over general landmarks
+#'
+#' @noRd
+#' @export
 pref_specific <- function(landmark_gazetteer,
                           landmark_match,
                           cluster_thresh = 0.624){
@@ -1325,7 +1339,10 @@ pref_specific <- function(landmark_gazetteer,
   return(landmark_gazetteer)
 }
 
-
+#' Preference original names over augmented names
+#'
+#' @noRd
+#' @export
 pref_orig_name_with_gen_landmarks <- function(landmark_gazetteer,
                                               landmark_match){
   # Preferences the original name versus parallel landmark versions of names in
@@ -1379,6 +1396,10 @@ pref_orig_name_with_gen_landmarks <- function(landmark_gazetteer,
   return(landmark_gazetteer)
 }
 
+#' Preference original name over augment names
+#'
+#' @noRd
+#' @export
 pref_type_with_gen_landmarks <- function(landmark_gazetteer,
                                          landmark_match,
                                          type_list){
@@ -1445,10 +1466,11 @@ pref_type_with_gen_landmarks <- function(landmark_gazetteer,
 
 ##### ******************************************************************** #####
 # ADD REGEX VARIABLES TO LOCATION DATA -----------------------------------------
-# TODO: Could generalize so that landmarks could be not treated separately. This
-#       would actually work as is if combine roads, so, for example:
-#       location = mombasa rd|kenyatta ave
 
+#' Search for text pattern
+#'
+#' @noRd
+#' @export
 search_crashword_prepos <- function(text,
                                     location_words,
                                     crash_words,
@@ -1470,6 +1492,10 @@ search_crashword_prepos <- function(text,
   return(crashword_prepos_TF)
 }
 
+#' Search for text pattern
+#'
+#' @noRd
+#' @export
 search_crashword_other_prepos <- function(text,
                                           location_words,
                                           crash_words,
@@ -1507,6 +1533,10 @@ search_crashword_other_prepos <- function(text,
   return(TF)
 }
 
+#' Check if preposition is before a location word
+#'
+#' @noRd
+#' @export
 search_prep_loc <- function(text, location_words, prepositions){
 
   # Preposition before location word
@@ -1526,6 +1556,10 @@ search_prep_loc <- function(text, location_words, prepositions){
 ##### ******************************************************************** #####
 # DETERMINE EVENT LOCATION -----------------------------------------------------
 
+#' Choose between multiple landmarks
+#'
+#' @noRd
+#' @export
 choose_between_multiple_landmarks <- function(df_out,
                                               roads,
                                               roads_final,
@@ -1533,17 +1567,6 @@ choose_between_multiple_landmarks <- function(df_out,
   #### Function for strategy of dealing with multiple landmarks (different names)
 
   # 1. Restrict landmarks based on preposition tiers
-  # TODO: I don't think needed? Done before enters function.
-  #if(TRUE %in% df_out$tier_1_prepos_before_crashword){
-  #  df_out <- df_out[df_out$tier_1_prepos_before_crashword %in% TRUE,]
-  #  df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "restrict_to_tier1_prepositions", sep=";")
-  #} else if(TRUE %in% df_out$tier_2_prepos_before_crashword){
-  #  df_out <- df_out[df_out$tier_2_prepos_before_crashword %in% TRUE,]
-  #  df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "restrict_to_tier2_prepositions", sep=";")
-  #} else if(TRUE %in% df_out$tier_3_prepos_before_crashword){
-  #  df_out <- df_out[df_out$tier_3_prepos_before_crashword %in% TRUE,]
-  #  df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "restrict_to_tier3_prepositions", sep=";")
-  #}
 
   # 2. If road mentioned, restrict to landmarks near road
   if(nrow(roads_final) > 0){
@@ -1587,6 +1610,10 @@ choose_between_multiple_landmarks <- function(df_out,
   return(df_out)
 }
 
+#' Choose between landmarks with the same name
+#'
+#' @noRd
+#' @export
 choose_between_landmark_same_name <- function(df_out,
                                               roads,
                                               roads_final,
@@ -1662,7 +1689,10 @@ choose_between_landmark_same_name <- function(df_out,
   return(df_out)
 }
 
-#### Function for snapping landmark to road
+#' Snap location to road
+#'
+#' @noRd
+#' @export
 snap_landmark_to_road <- function(df_out,
                                   roads,
                                   roads_final,
@@ -1728,7 +1758,10 @@ snap_landmark_to_road <- function(df_out,
 
 }
 
-#### Find other landmarks that might be near road
+#' Find other landmarks that might be near road
+#'
+#' @noRd
+#' @export
 find_landmark_similar_name_close_to_road <- function(df_out,
                                                      roads,
                                                      roads_final,
@@ -1886,40 +1919,16 @@ find_landmark_similar_name_close_to_road <- function(df_out,
       }
     }
 
-    #### END NEW
-
-    #if(nrow(landmark_gazetteer_subset) >= 1){
-    #  landmark_gazetteer_subset <- as.data.frame(landmark_gazetteer_subset)
-
-    ## Maximum distance between coordinates
-    #  lat_min <- min(landmark_gazetteer_subset$lat)
-    #  lat_max <- max(landmark_gazetteer_subset$lat)
-    #  lon_min <- min(landmark_gazetteer_subset$lon)
-    #  lon_max <- max(landmark_gazetteer_subset$lon)
-    #  max_dist <- sqrt((lat_max - lat_min)^2 + (lon_max - lon_min)^2)
-
-    # SEE IF THERE IS A DOMINANT CLUSTER HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TODO
-
-    ## If coordinates close
-    #  if(max_dist <= 500){
-    #    lat_mean <- mean(landmark_gazetteer_subset$lat)
-    #    lon_mean <- mean(landmark_gazetteer_subset$lon)
-
-    #    df_out <- df_out[1,]
-
-    #    df_out$lat <- lat_mean
-    #    df_out$lon <- lon_mean
-    #    df_out$matched_words_correct_spelling <- paste(c(unique(df_out$matched_words_correct_spelling),unique(landmark_gazetteer_subset$name)), collapse=";")
-    #    df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "broadended_landmark_search_found_landmarks_similar_name_near_road", sep=";")
-    #  }
-    #}
-
   }
 
   return(df_out)
 
 }
 
+#' Determine location from landmark
+#'
+#' @noRd
+#' @export
 determine_location_from_landmark <- function(df_out,
                                              how_determined_text = "",
                                              landmark_gazetteer,
@@ -1930,7 +1939,6 @@ determine_location_from_landmark <- function(df_out,
                                              text_i){
 
 
-  #df_out <- subset(df_out, select=c(matched_words_tweet_spelling, matched_words_correct_spelling, dist_closest_crash_word)) %>% unique
   df_out <- merge(df_out, landmark_gazetteer, by.x="matched_words_correct_spelling", by.y="name", all.x=T, all.y=F)
 
   df_out$how_determined_landmark <- how_determined_text
@@ -1961,9 +1969,13 @@ determine_location_from_landmark <- function(df_out,
   return(df_out)
 }
 
+#' Determine location from intersection
+#'
+#' @noRd
+#' @export
 determine_location_from_intersection <- function(df_out,
                                                  how_determined_text = ""){
-  # TODO: If two intersections, how do we preference?
+
   df_out <- df_out %>%
     st_as_sf() %>%
     sf_to_df()

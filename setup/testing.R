@@ -5,9 +5,9 @@
 #### Install package
 ## Install/Load Package Dependencies
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(magrittr, lubridate, dplyr, tidyr, readr, purrr, tidytext,
-               stringr, stringi, ngram, hunspell, stringdist, tm, raster,
-               parallel, jsonlite, sf, quanteda, geodist)
+pacman::p_load(dplyr, tidyr, readr, purrr, tidytext,
+               stringr, stringi, ngram, hunspell, stringdist, tm,
+               parallel, sf, quanteda, geodist, raster)
 
 library(spacyr)
 
@@ -78,9 +78,8 @@ busstops_sf <- busstops_sf %>%
   mutate(type = "bus_stop")
 
 ## Append
-landmarks_sf <- landmarks_sf %>%
-  bind_rows(amenities_sf,
-            busstops_sf) %>%
+landmarks_sf <- bind_rows(amenities_sf,
+                          busstops_sf) %>%
   filter(!is.na(name)) %>%
   dplyr::select(name, type) %>%
   mutate(name = name %>% tolower())
@@ -130,7 +129,39 @@ a <- landmarks_aug_sf %>%
   dplyr::summarise(n = n()) %>%
   ungroup()
 
+library(ggplot2)
 
+ggplot() +
+  geom_sf(data = roads_sf,
+          color = "forestgreen",
+          linewidth = 0.6) +
+  geom_sf(data = landmarks_sf,
+          color = "blue",
+          size = 0.1,
+          alpha = 0.5) +
+  geom_sf(data = nbo_sf,
+          fill = "gray",
+          color = "black",
+          linewidth = 0.5,
+          alpha = 0.2) +
+  theme_void()
+
+leaflet() %>%
+  addPolygons(data = nbo_sf,
+              color = "gray",
+              opacity = 1,
+              weight = 2,
+              popup = ~name) %>%
+  addPolylines(data = roads_sf,
+               color = "green",
+               opacity = 1,
+               weight = 1,
+               popup = ~name) %>%
+  addCircles(data = landmarks_sf,
+             color = "blue",
+             opacity = 1,
+             weight = 1,
+             popup = ~name)
 
 
 
