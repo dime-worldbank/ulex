@@ -21,7 +21,13 @@ knitr::opts_chunk$set(
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
 <!-- badges: end -->
 
-## Overview
+* [Overview](#overview)
+* [Installation](#installation)
+* [Main functions](#main-functions)
+* [Quick start](#quick-start)
+* [Additional information on main functions](#addn-info)
+
+## Overview <a name="overview"></a>
 
 Text often contains references to the locations of events where we want to extract the location of the event. For example, consider this example tweet that reports a road traffic crash in Nairobi, Kenya, where we are interested in determining the location of the crash:
 
@@ -33,7 +39,7 @@ The Unique Location Extractor (ULEx) geoparses text to extract the unique locati
 
 This package was originally developed to extract locations of road traffic crashes from reports of crashes via Twitter, specifically in the context of Nairobi, Kenya using the Twitter feed [@Ma3Route](https://twitter.com/Ma3Route?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor).
 
-## Installation
+## Installation <a name="installation"></a>
 
 You can install the development version of `ulex` from GitHub with:
 
@@ -42,21 +48,23 @@ You can install the development version of `ulex` from GitHub with:
 devtools::install_github("worldbank/rsocialwatcher")
 ```
 
-## Main functions
+## Main functions <a name="main-functions"></a>
 
 The package contains two main functions:
 
-* __augment_gazetteer:__ The backbone of locating events is looking up location references in a gazetteer, or geographic dictionary. The `augment_gazetteer` facilitates cleaning a gazetteer that may have been constructed from sources such as [OpenStreetMaps](https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html), [Geonames](https://github.com/ropensci/geonames) or [Google Maps](https://www.rdocumentation.org/packages/googleway/versions/2.7.1/topics/google_places).
+* __augment_gazetteer:__ The backbone of locating events is looking up location references in a gazetteer, or geographic dictionary. The `augment_gazetteer` facilitates cleaning a gazetteer that may have been constructed from sources such as [OpenStreetMaps](https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html), [Geonames](https://github.com/ropensci/geonames) or [Google Maps](https://www.rdocumentation.org/packages/googleway/versions/2.7.1/topics/google_places). For more information on the function, see [here](#addn-aug).
 
-* __locate_event:__ Takes text as input and returns the location of the relevant event. Key inputs include the text to geoparse, a gazetteer of landmarks, spatial files of roads and areas (e.g., neighborhoods) and a list of event words.
+* __locate_event:__ Takes text as input and returns the location of the relevant event. Key inputs include the text to geoparse, a gazetteer of landmarks, spatial files of roads and areas (e.g., neighborhoods) and a list of event words. For more information on the function, see [here](#addn-loc).
 
-## Quick Start
+## Quick Start <a name="quick-start"></a>
 
 * [Setup](#setup)
 * [Create location datasets](#create-loc-data)
-- [Dataset of Wards](#create-areas)
-- [Dataset of roads](#create-roads)
-- [Dataset of landmarks (landmark gazetteer)](#create-landmarks)
+  - [Dataset of Wards](#create-areas)
+  - [Dataset of roads](#create-roads)
+  - [Dataset of landmarks (landmark gazetteer)](#create-landmarks)
+* [Augment gazetteer](#aug-gazettee)
+* [Location events](#loc-events)
 
 ### Setup <a name="setup"></a>
 
@@ -224,9 +232,9 @@ ggplot() +
   theme_void()
 ```
 
-## Additional information for main functions
+## Additional information on main functions <a name="addn-info"></a>
 
-### augment_gazetteer
+### augment_gazetteer <a name="addn-aug"></a>
 
 The `augment_gazetteer` function adds additional landmarks to account for different ways of saying the same landmark name. For example, raw gazetteers may contain long, formal names, where shorter versions of the name are more often used. In addition, the function facilitates removing landmarks names that are spurious or may confuse the algorithm; these include landmark names that are common words that may be used in different contexts, or frequent and generic landmarks such as `hotel`. Key components of the function include:
 
@@ -234,7 +242,7 @@ The `augment_gazetteer` function adds additional landmarks to account for differ
 2. Adding landmarks according to a set of rules: for example, if a landmark starts or ends with a certain word, an alternative version of the landmark is added that removes that word. Here, words along categories of landmarks are removed, where a user may not reference the category; for example, a user will more likely say `McDonalds` than `McDonalds restaurant.`
 3. Removes landmarks that refer to large geographic areas (e.g., roads). Roads and areas are dealt with separately; this function focuses on cleaning a gazetteer of specific points/landmarks.
 
-### locate_event
+### locate_event <a name="addn-loc"></a>
 
 The `locate_event` function extracts landmarks from text and determines the unique location of events from the text. The algorithm works in two steps: (1) finding locations in text and (2) determining a unique location.
 
