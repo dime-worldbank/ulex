@@ -66,6 +66,14 @@ The package contains two main functions:
 
 ## Quick Start
 
+- [Setup](#setup)
+- [Create location datasets](#create-loc-data)
+- [Dataset of Wards](#create-areas)
+- [Dataset of roads](#create-roads)
+- [Dataset of landmarks (landmark gazetteer)](#create-landmarks)
+
+### Setup <a name="setup"></a>
+
 ``` r
 #### Install package
 ## Install/Load Package Dependencies
@@ -80,18 +88,16 @@ library(spacyr)
 source("~/Documents/Github/ulex/R/helper_functions.R")
 source("~/Documents/Github/ulex/R/augment_gazetteer.R")
 source("~/Documents/Github/ulex/R/locate_event.R")
-```
 
-### Create landmark gazeteer and dataset of roads and neighborhoods
-
-``` r
 library(geodata)
 library(osmdata)
 library(ggplot2)
 library(stringr)
 ```
 
-#### Dataset of Wards
+### Create location datasets <a name="create-loc-data"></a>
+
+#### Dataset of Wards <a name="create-areas"></a>
 
 We create a dataset of Wards in Nairobi from
 [GADM](https://gadm.org/data.html).
@@ -118,7 +124,7 @@ head(nbo_sf)
 #> 6   Mutu-Ini POLYGON ((36.67803 -1.29837...
 ```
 
-#### Dataset of roads
+#### Dataset of roads <a name="create-roads"></a>
 
 We create a dataset of roads from
 [OpenStreetMaps](https://www.openstreetmap.org/).
@@ -154,7 +160,7 @@ head(roads_sf)
 #> 4723375 city mortuary round about LINESTRING (36.80306 -1.298...
 ```
 
-#### Gazetteer of landmarks
+#### Dataset of landmarks (landmark gazetteer) <a name="create-landmarks"></a>
 
 We create a gazetteer of landmarks from
 [OpenStreetMaps](https://www.openstreetmap.org/). From OpenStreetMaps,
@@ -214,39 +220,47 @@ head(landmarks_sf)
 #> 30092033 POINT (36.78867 -1.299975)
 ```
 
-## Map locations
+#### Map locations
 
 ``` r
 ggplot() +
   geom_sf(data = roads_sf,
-          color = "forestgreen",
+          aes(color = "Roads"),
           linewidth = 0.6) +
   geom_sf(data = landmarks_sf,
-          color = "blue",
+          aes(color = "Landmarks"),
           size = 0.1,
           alpha = 0.5) +
   geom_sf(data = nbo_sf,
           fill = "gray",
-          color = "black",
+          aes(color = "Wards"),
           linewidth = 0.5,
           alpha = 0.2) +
-  theme_void()
+  labs(color = NULL,
+       title = "Landmarks, Roads, and Wards") +
+  scale_color_manual(values = c("blue", "chartreuse3", "black")) +
+  theme_void() +
+  theme(plot.title = element_text(face = "bold"))
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
-## Augment Gazetteer
+### Augment Gazetteer <a name="aug-gazetteer"></a>
 
 ``` r
 landmarks_aug_sf <- augment_gazetteer(landmarks_sf)
 ```
 
-## Locate Events
+### Locate Events <a name="loc-events"></a>
+
+We geolocate 5 tweets.
+
+1.  **crash at garden city**
 
 ``` r
-tweets <- c("crash occurred near garden city on thika road on your way towards 
+tweets <- c("crash at garden city",
+            "crash occurred near garden city on thika road on your way towards 
             roysambu",
-            "crash at garden city",
             "crash at intersection of juja road and outer ring rd",
             "crash occured near roysambu on thika rd",
             "crash near mathare centre along juja road")
@@ -257,17 +271,26 @@ crashes_sf <- locate_event(text = tweets,
                            roads = roads_sf,
                            event_words = c("accident", "crash", "collision", 
                                            "wreck", "overturn"))
-
-# leaflet() %>%
-#   addTiles() %>%
-#   addCircles(data = crashes_sf,
-#              popup = ~text,
-#              color = "red",
-#              opacity = 0.9,
-#              weight = 10)
 ```
 
-# augment_gazetteer
+``` r
+ggplot() +
+  geom_sf() +
+  geom_sf(data = nbo_sf,
+          fill = "gray",
+          color ="gray") +
+  geom_sf(data = crashes_sf,
+          pch = 21,
+          color = "black",
+          fill = "red") +
+  theme_void()
+```
+
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+
+## Additional information for main functions
+
+### augment_gazetteer
 
 The `augment_gazetteer` function adds additional landmarks to account
 for different ways of saying the same landmark name. For example, raw
@@ -291,32 +314,23 @@ Key components of the function include:
 3.  Removes landmarks that refer to large geographic areas (e.g.,
     roads). Roads and areas are dealt with separately; this function
     focuses on cleaning a gazetteer of specific points/landmarks.
-4.  Determines whether a landmark should be categorized as `specific` or
-    `general`. Specific landmarks are those where the name uniquely
-    identifies a location. General landmarks are those where the names
-    do no uniquely identify a location; however, a general landmark with
-    contextual information such as a road can uniquely determine a
-    location. Note that when multiple landmarks have the same name, but
-    \>90% of the landmarks are very closely clustered together, the
-    landmarks in the cluster are designated as `specific` while the
-    other 10% are designated as `general`. The `locate_event` function
-    only considers general landmarks when contextual information (roads
-    or areas) are also referenced in the text.
 
-# locate_event
+### locate_event
 
 The `locate_event` function extracts landmarks from text and determines
-the unique location of events from the text.
+the unique location of events from the text. The algorithm works in two
+steps: (1) finding locations in text and (2) determining a unique
+location.
+
+*Finding location references in text*
 
 To extract location references from text, the function implements the
-following steps. Some parts of each step will extract the same landmark
-so to some extent are redundant; however, they all in some circumstances
-uniquely add landmarks.
+following steps to extract location references from text.
 
 1.  Determines whether any text matches names in the gazetteer. Both
-    exact and ‘fuzzy’ matches (allowing a certain levenstein distance)
+    exact and ‘fuzzy’ matches (allowing a certain Levenstein distance)
     are used.
-2.  Relying on words after prepositions to find locations. The algorithm
+2.  Rely on words after prepositions to find locations. The algorithm
     starts with a word after a preposition and extracts all landmarks
     that contain that word. Then, the algorithm takes the next word in
     the text and further subsets the landmarks. This process is repeated
@@ -331,35 +345,34 @@ uniquely add landmarks.
     or area are searched for. For example, if a user says
     `crash near garden on thika road`, the algorithm may extract
     multiple landmarks with the name `garden`, none of which are near
-    thika road. It will then search for all landmarks that contain
-    `garden` in them (e.g., `garden city mall`) that are near thika
+    Thika road. It will then search for all landmarks that contain
+    `garden` in them (e.g., `garden city mall`) that are near Thika
     road.
 4.  If two roads are mentioned, the algorithm extracts the intersection
     of the roads.
 
-After extracting landmarks, the algorithm chooses the correct landmark
-using a series of steps. These steps consider a defined list of event
-words (eg, for road traffic crashes, these could include ‘crash’,
+*Determine unique location*
+
+After extracting landmarks, the algorithm seeks to identify a single
+location using a series of steps. These steps consider a defined list of
+event words (eg, for road traffic crashes, these could include ‘crash’,
 ‘accident’, ‘overturn’, etc), whether the user mentions a junction word
 (e.g., ‘junction’ or ‘intersection’) and a list of prepositions. Certain
 prepositions are given precedent over others to distinguish between
 locations indicating the location of an event versus locations further
 away that provide additional context; for example, `at` takes higher
 precedence that `towards`. The following main series of steps are used
-in the following order
+in the following order:
 
-1.  Locations that follow the pattern \[even word\] \[preposition\]
+1.  Locations that follow the pattern \[event word\] \[preposition\]
     \[location\] are extracted.
 2.  Locations that follow the pattern \[preposition\] \[location\] are
     extracted. If multiple occurrences, the location near the higher
     order preposition is used. If a tie, the location closest to the
-    event word is used. TODO: parameterize which should be
-    prioritized: (1) location to event word or (2) preposition priority.
-    Which one should we default and which should be tie-breaker? Not
-    obvious, for example: `accident towards thika mall at garden city`.
+    event word is used.
 3.  If a junction word is used, two roads are mentioned, and the two
     roads intersect once, the intersection point is used.
-4.  The location closest to the event word is used.
+4.  The location closest to the event word within the text is used.
 5.  If the location name has multiple locations, we (1) restrict to
     locations near any mentioned road or area, (2) check for a dominant
     cluster of locations and (3) prioritize certain landmark types over
