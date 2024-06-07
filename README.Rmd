@@ -22,7 +22,8 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 ## Overview
-Text often contains references to the locations of events where we want to extract the location of the event. For example, consider this example tweet that reports a crash in Nairobi, Kenya, where we are interested in extracting the location of the crash:
+
+Text often contains references to the locations of events where we want to extract the location of the event. For example, consider this example tweet that reports a road traffic crash in Nairobi, Kenya, where we are interested in determining the location of the crash:
 
 > crash occurred near garden city on thika road on your way towards roysambu.
 
@@ -34,10 +35,11 @@ This package was originally developed to extract locations of road traffic crash
 
 ## Installation
 
-ULEx is an an R package. Until the package is made available via devtools (coming soon!), the functions can be loaded by running the following script
+You can install the development version of `ulex` from GitHub with:
 
 ``` r
-source("https://raw.githubusercontent.com/ramarty/Unique-Location-Extractor/master/R/load_ulex.R")
+# install.packages("devtools")
+devtools::install_github("worldbank/rsocialwatcher")
 ```
 
 ## Main functions
@@ -48,7 +50,7 @@ The package contains two main functions:
 
 * __locate_event:__ takes text as input and returns the location of the relevant event. Key inputs include the text to geoparse, a gazetteer of landmarks, spatial files of roads and areas (e.g., neighborhoods) and a list of event words.
 
-## Example
+## Quick Start
 
 ```{r, message = F, warning=F}
 #### Install package
@@ -56,7 +58,7 @@ The package contains two main functions:
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(magrittr, lubridate, dplyr, tidyr, readr, purrr, tidytext,
                stringr, stringi, ngram, hunspell, stringdist, tm, raster,
-               parallel, jsonlite, sf, quanteda)
+               parallel, jsonlite, sf, quanteda, geodist)
 
 library(spacyr)
 
@@ -66,42 +68,121 @@ source("~/Documents/Github/ulex/R/augment_gazetteer.R")
 source("~/Documents/Github/ulex/R/locate_event.R")
 ```
 
-``` r
-#### Packages
-library(leaflet) # needed just to display output
+### Create landmark gazeteer and dataset of roads and neighborhoods
 
-#### Load Example Data
-landmarks     <- st_read("https://raw.githubusercontent.com/ramarty/Unique-Location-Extractor/master/data/example_landmarks.geojson")
-neighborhoods <- st_read("https://raw.githubusercontent.com/ramarty/Unique-Location-Extractor/master/data/example_areas.geojson")
-roads         <- st_read("https://raw.githubusercontent.com/ramarty/Unique-Location-Extractor/master/data/example_roads.geojson")
+```{r, message = F, warning=F}
+library(geodata)
+library(osmdata)
+library(leaflet)
+library(stringr)
+```
 
-#### Augment Gaztteer
-landmarks_aug <- augment_gazetteer(landmarks,
-                                   crs_distance = "+init=epsg:21037")
+#### Dataset of Wards
 
-#### Locate Crashes in example tweets
+We create a dataset of Wards in Nairobi from [GADM](https://gadm.org/data.html).
+
+```{r, message = F, warning=F}
+ken_sf <- gadm(country = "KEN", level = 3, path = tempdir()) %>% st_as_sf()
+nbo_sf <- ken_sf %>%
+  filter(NAME_1 %in% "Nairobi") %>%
+  rename(name = NAME_3) %>%
+  dplyr::select(name)
+
+head(nbo_sf)
+```
+
+#### Dataset of roads
+
+We create a dataset of roads from [OpenStreetMaps](https://www.openstreetmap.org/).
+
+```{r, message = F, warning=F}
+roads_sf <- opq(st_bbox(nbo_sf), timeout = 999) %>%
+  add_osm_feature(key = "highway", value = c("motorway",
+                                             "trunk",
+                                             "primary",
+                                             "secondary",
+                                             "tertiary",
+                                             "unclassified")) %>%
+  osmdata_sf()
+roads_sf <- roads_sf$osm_lines
+
+roads_sf <- roads_sf %>%
+  filter(!is.na(name)) %>%
+  dplyr::select(name) %>%
+  mutate(name = name %>% tolower())
+
+head(roads_sf)
+```
+
+#### Gazetteer of landmarks
+
+We create a gazetteer of landmarks from [OpenStreetMaps](https://www.openstreetmap.org/). From OpenStreetMaps, we use all amenities and bus stops.
+
+```{r, message = F, warning=F}
+# Amenities --------------------------------------------------------------------
+amenities_sf <- opq(st_bbox(nbo_sf), timeout = 999) %>%
+  add_osm_feature(key = "amenity") %>%
+  osmdata_sf()
+
+amenities_pnt_sf <- amenities_sf$osm_points
+amenities_ply_sf <- amenities_sf$osm_polygons %>%
+  st_centroid()
+
+amenities_sf <- bind_rows(amenities_pnt_sf,
+                          amenities_ply_sf) %>%
+  dplyr::mutate(type = amenity)
+
+# Bus Stops --------------------------------------------------------------------
+busstops_sf <- opq(st_bbox(nbo_sf), timeout = 999) %>%
+  add_osm_feature(key = "highway",
+                  value = "bus_stop") %>%
+  osmdata_sf()
+
+busstops_sf <- busstops_sf$osm_points
+
+busstops_sf <- busstops_sf %>%
+  mutate(type = "bus_stop")
+
+# Append -----------------------------------------------------------------------
+landmarks_sf <- bind_rows(amenities_sf,
+                          busstops_sf) %>%
+  filter(!is.na(name)) %>%
+  dplyr::select(name, type) %>%
+  mutate(name = name %>% tolower())
+
+head(landmarks_sf)
+```
+
+## Augment Gazetteer
+
+```{r, message = F, warning=F}
+landmarks_aug_sf <- augment_gazetteer(landmarks_sf)
+```
+
+## Locate Events
+
+```{r, message = F, warning=F}
 tweets <- c("crash occurred near garden city on thika road on your way towards roysambu",
             "crash at garden city",
             "crash at intersection of juja road and outer ring rd",
             "crash occured near roysambu on thika rd",
-            "crash at pangani")
+            "crash near mathare centre along juja road")
 
-crash_locs <- locate_event(text = tweets,
-                           landmark_gazetteer = landmarks_aug,
-                           areas = neighborhoods,
-                           roads = roads,
-                           event_words = c("accident", "crash", "collision", "wreck", "overturn"),
-                           crs_distance = "+init=epsg:21037")
+crashes_sf <- locate_event(text = tweets,
+                           landmark_gazetteer = landmarks_aug_sf,
+                           areas = nbo_sf,
+                           roads = roads_sf,
+                           event_words = c("accident", "crash", "collision", "wreck", "overturn"))
 
-#### Display output
-leaflet() %>%
-  addTiles() %>%
-  addCircles(data=crash_locs,
-             label = ~text,
-             opacity = 1,
-             weight=10,
-             color = "red")
+# leaflet() %>%
+#   addTiles() %>%
+#   addCircles(data = crashes_sf,
+#              popup = ~text,
+#              color = "red",
+#              opacity = 0.9,
+#              weight = 10)
 ```
+
 
 # augment_gazetteer
 

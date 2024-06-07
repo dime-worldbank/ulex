@@ -93,36 +93,56 @@ landmarks_sf <- landmarks_sf %>%
 landmarks_aug_sf <- augment_gazetteer(landmarks_sf,
                                       quiet = F)
 
+landmarks_aug_sf <- landmarks_aug_sf %>%
+  dplyr::filter(!(name %in% c("hospital")))
+
+landmarks_sf <- landmarks_sf %>%
+  dplyr::filter(!(name %in% c("hospital")))
+
 #### Locate Crashes in example tweets
 tweets <- c("crash occurred near garden city on thika road on your way towards roysambu",
             "crash at garden city",
             "crash at intersection of juja road and outer ring rd",
-            "crash occured near roysambu on thika rd", # why didn't snap
-            "crash at kensup market") # missing
+            "crash occured near roysambu on thika rd",
+            "crash near mathare centre along juja road")
 
-crashes_sf <- locate_event(text = tweets[5],
+crashes_sf <- locate_event(text = tweets,
                            landmark_gazetteer = landmarks_sf,
                            areas = nbo_sf,
                            roads = roads_sf,
                            event_words = c("accident", "crash", "collision", "wreck", "overturn"),
                            quiet = F)
 
-
-
-
-landmarks_aug_sf %>%
-  filter(name %>% str_detect("kensup market"))
-
-
-
-
-
-
+crashes_sf
 library(leaflet)
 leaflet() %>%
   addTiles() %>%
   addCircles(data = crashes_sf,
-             popup = ~text)
+             popup = ~text,
+             color = "red",
+             opacity = 0.9,
+             weight = 5)
+
+
+a <- landmarks_aug_sf %>%
+  st_drop_geometry() %>%
+  group_by(name) %>%
+  dplyr::summarise(n = n()) %>%
+  ungroup()
+
+
+
+
+
+landmarks_aug_sf %>%
+  filter(name %>% str_detect("kenyatta"))
+
+
+
+
+
+
+
 
 text = tweets[1]
 landmark_gazetteer = landmark_aug_sf
