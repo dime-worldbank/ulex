@@ -120,3 +120,7 @@ token.*
 tokens.*
 token/
 tokens/
+
+#######################
+# Images
+!/**/*.png
