@@ -9,7 +9,6 @@
 [![activity](https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex)](https://github.com/dime-worldbank/ulex/graphs/commit-activity)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
-[![R-CMD-check](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 - [Overview](#overview)
@@ -37,7 +36,13 @@ garden city location on Thika road that represents the crash site.
 unique location of events.** The algorithm takes advantage of contextual
 information contained within text (references to roads or administrate
 areas, such as neighborhoods) and determines which location references
-do not reference the event of interest and should be ignored.
+do not reference the event of interest and should be ignored. Moreover,
+the algorithm accounts for differences in spelling between how a user
+writes a location and how the location is captured in a dictionary of
+locations; users may use shorter, informal names while a location
+dictionary may just contain formal names. For example, a user may write
+*“crash near mathare center”*, while a landmark dictionary contains
+*“mathare social justice centre”*.
 
 This package was originally developed to extract locations of road
 traffic crashes from reports of crashes via Twitter, specifically in the
@@ -92,22 +97,14 @@ The package contains two main functions:
 ### Setup <a name="setup"></a>
 
 ``` r
-#### Install package
-## Install/Load Package Dependencies
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(magrittr, lubridate, dplyr, tidyr, readr, purrr, tidytext,
-               stringr, stringi, ngram, hunspell, stringdist, tm, raster,
-               parallel, jsonlite, sf, quanteda, geodist)
+# Load ULEx
+library(ulex)
 
-library(spacyr)
-
-## Load ULEx Functions
-source("~/Documents/Github/ulex/R/helper_functions.R")
-source("~/Documents/Github/ulex/R/augment_gazetteer.R")
-source("~/Documents/Github/ulex/R/locate_event.R")
-
+## Load other packages, such as those for creating location dictionaries
 library(geodata)
 library(osmdata)
+library(dplyr)
+library(sf)
 library(ggplot2)
 library(stringr)
 ```
@@ -274,9 +271,9 @@ entries from about 11,000 to 50,000.
 landmarks_aug_sf <- augment_gazetteer(landmarks_sf)
 
 print(nrow(landmarks_sf))
-#> [1] 11165
+#> [1] 11168
 print(nrow(landmarks_aug_sf))
-#> [1] 49992
+#> [1] 50006
 
 head(landmarks_aug_sf)
 #> Simple feature collection with 6 features and 3 fields
@@ -407,16 +404,16 @@ head(crashes_sf)
 #> 4                    NA
 #> 5             5.1565383
 #>                                                                                                             lon_all
-#> 1 36.8779701;36.8780867;36.8788693;36.8787449;36.8784728;36.8783717;36.8783882;36.877926;36.878982133789;36.8790582
-#> 2                                                            36.8774006;36.8776376;36.8780562;36.8773468;36.8784865
+#> 1 36.8788693;36.8783882;36.8783717;36.8779701;36.8780867;36.877926;36.878982133789;36.8787449;36.8784728;36.8790582
+#> 2                                                            36.8776376;36.8773468;36.8774006;36.8784865;36.8780562
 #> 3                                                                                                  36.8787944172118
-#> 4                                                             36.892742;36.8910567;36.8914926;36.8925596;36.8909309
+#> 4                                                             36.892742;36.8909309;36.8910567;36.8914926;36.8925596
 #> 5                                                            36.8657684;36.8637369;36.8643478;36.8631133;36.8599741
 #>                                                                                                    lat_all
-#> 1 -1.2323486;-1.2320662;-1.2329316;-1.232074;-1.2332295;-1.2325403;-1.2330105;-1.23139664524347;-1.2322988
-#> 2                                                       -1.231608;-1.2314164;-1.231087;-1.23165;-1.2307509
+#> 1 -1.2329316;-1.2330105;-1.2325403;-1.2323486;-1.2320662;-1.232074;-1.23139664524347;-1.2332295;-1.2322988
+#> 2                                                       -1.2314164;-1.23165;-1.231608;-1.2307509;-1.231087
 #> 3                                                                                        -1.26230037028693
-#> 4                                                   -1.2185699;-1.2204266;-1.2175606;-1.2182267;-1.2179853
+#> 4                                                   -1.2185699;-1.2179853;-1.2204266;-1.2175606;-1.2182267
 #> 5                                                    -1.2625076;-1.2630666;-1.262893;-1.2632442;-1.2643594
 #>   landmarks_all_text_spelling landmarks_all_correct_spelling
 #> 1                 garden city                    garden city
