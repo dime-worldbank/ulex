@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ulex)](https://cran.r-project.org/package=ulex)
-[![activity](https://img.shields.io/github/commit-activity/m/worldbank/ulex)](https://github.com/worldbank/ulex/graphs/commit-activity)
+[![activity](https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex)](https://github.com/dime-worldbank/ulex/graphs/commit-activity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
 <!-- badges: end -->
 
@@ -234,7 +234,7 @@ ggplot() +
 
 ## Additional information on main functions <a name="addn-info"></a>
 
-### augment_gazetteer <a name="addn-aug"></a>
+### `augment_gazetteer()` <a name="addn-aug"></a>
 
 The `augment_gazetteer` function adds additional landmarks to account for different ways of saying the same landmark name. For example, raw gazetteers may contain long, formal names, where shorter versions of the name are more often used. In addition, the function facilitates removing landmarks names that are spurious or may confuse the algorithm; these include landmark names that are common words that may be used in different contexts, or frequent and generic landmarks such as `hotel`. Key components of the function include:
 
@@ -242,7 +242,7 @@ The `augment_gazetteer` function adds additional landmarks to account for differ
 2. Adding landmarks according to a set of rules: for example, if a landmark starts or ends with a certain word, an alternative version of the landmark is added that removes that word. Here, words along categories of landmarks are removed, where a user may not reference the category; for example, a user will more likely say `McDonalds` than `McDonalds restaurant.`
 3. Removes landmarks that refer to large geographic areas (e.g., roads). Roads and areas are dealt with separately; this function focuses on cleaning a gazetteer of specific points/landmarks.
 
-### locate_event <a name="addn-loc"></a>
+### `locate_event()` <a name="addn-loc"></a>
 
 The `locate_event` function extracts landmarks from text and determines the unique location of events from the text. The algorithm works in two steps: (1) finding locations in text and (2) determining a unique location.
 

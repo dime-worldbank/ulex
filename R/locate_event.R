@@ -5,18 +5,17 @@
 #' Locate Event
 #'
 #' @param text Vector of texts to be geolocated.
-#' @param landmark_gazetteer `sf` spatial dataframe representing landmarks.
+#' @param landmark_gazetteer `sf` spatial data.frame representing landmarks.
 #' @param landmark_gazetteer.name_var Name of variable indicating `name` of landmark.
 #' @param landmark_gazetteer.type_var Name of variable indicating `type` of landmark.
-#' @param roads `sf` spatial dataframe representing roads.
-#' @param roads.name_var Name of variasble indicating `name` of road.
-#' @param areas `sf` spatial dataframe representing areas, such as administrative areas or neighborhoods.
+#' @param roads `sf` spatial data.frame representing roads.
+#' @param roads.name_var Name of variable indicating `name` of road.
+#' @param areas `sf` spatial data.frame representing areas, such as administrative areas or neighborhoods.
 #' @param areas.name_var Name of variable indicating `name` of area.
 #' @param event_words Vector of event words, representing events to be geocoded.
-#' @param prepositions_list List of vectors of prepositions. Order of list determines order of prepsoition precedence.
-#' @param prep_check_order
+#' @param prepositions_list List of vectors of prepositions. Order of list determines order of preposition precedence. (Default: `list(c("at", "next to","around", "just after", "opposite","opp", "apa", "hapa","happened at", "just before","at the","outside", "right before"), c("near", "after", "toward", "along", "towards", "approach"), c("past","from","on"))`).
 #' @param junction_words Vector of junction words to check for when determining intersection of roads. (Default: `c("intersection", "junction")`).
-#' @param false_positive_phrases Common words found in text that include spurious location references (eg, __githurai bus__ is the name of a bus, but __githurai__ is also a place). These may be common phrases that should be checked and ignored in the text. (Default: "").
+#' @param false_positive_phrases Common words found in text that include spurious location references (eg, __githurai bus__ is the name of a bus, but __githurai__ is also a place). These may be common phrases that should be checked and ignored in the text. (Default: `""`).
 #' @param type_list List of vectors of types. Order of list determines order or type precedence. (Default: `NULL`).
 #' @param clost_dist_thresh Distance (meters) as to what is considered "close"; for example, when considering whether a landmark is close to a road. (Default: `500`).
 #' @param fuzzy_match Whether to implement fuzzy matching of landmarks using levenstein distance. (Default: `TRUE`).
@@ -65,7 +64,6 @@ locate_event <- function(text,
                                                   c("near", "after", "toward",
                                                     "along", "towards", "approach"),
                                                   c("past","from","on")),
-                         prep_check_order = "prep_then_pattern",
                          junction_words = c("intersection", "junction"),
                          false_positive_phrases = "",
                          type_list = NULL,
@@ -80,9 +78,10 @@ locate_event <- function(text,
                          mc_cores = 1){
 
   ## Defaults
-  crs_distance <- 4326
-  crs_out <- 4326
-  quiet_debug <- T
+  crs_distance     <- 4326
+  crs_out          <- 4326
+  quiet_debug      <- T
+  prep_check_order <- "prep_then_pattern"
 
   # 1. Checks ------------------------------------------------------------------
   # Check inputs and output errors if anything is wrong.
@@ -1336,18 +1335,6 @@ locate_event_i <- function(text_i,
 
   df_out$text <- text_i
   if(!is.null(df_out$dist_closest_crash_word)) df_out$dist_closest_crash_word <- as.character(df_out$dist_closest_crash_word)
-
-  # # 9. Clean Spatial Output ----------------------------------------------------
-  # if(!quiet_debug) message("Section - 9")
-  # # If spatial object, reproject and make sf
-  # if(typeof(df_out) %in% "S4"){
-  #
-  #   df_out <- st_transform(df_out, crs_out)
-  #   df_out <- st_as_sf(df_out)
-  # } else{
-  #   # If not spatial object, give null geometry
-  #   df_out <- st_sf(df_out, geom = st_sfc(st_point()))
-  # }
 
   return(df_out)
 }
