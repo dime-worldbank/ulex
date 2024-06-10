@@ -125,7 +125,7 @@ locate_event <- function(text,
 
   if(!("name_original" %in% names(landmark_gazetteer))){
     landmark_gazetteer <- landmark_gazetteer %>%
-      dplyr::mutate(name_original = name)
+      dplyr::mutate(name_original = .data$name)
   }
 
   roads$name <- roads[[roads.name_var]]
@@ -330,6 +330,31 @@ locate_event <- function(text,
     st_crs(out_all) <- crs_out
   }
 
+  # 5. Cleanup Output ----------------------------------------------------------
+
+  for(var in c("matched_words_correct_spelling",
+               "matched_words_text_spelling",
+               "dist_closest_event_word",
+               "type",
+               "how_determined_location",
+               "dist_mentioned_road_m")){
+
+    if(is.null(out_all[[var]])){
+      out_all[[var]] <- NA
+    }
+
+  }
+
+  out_all <- out_all %>%
+    dplyr::select(.data$text,
+                  .data$matched_words_correct_spelling,
+                  .data$matched_words_text_spelling,
+                  .data$dist_closest_event_word,
+                  .data$type,
+                  .data$how_determined_location,
+                  .data$dist_mentioned_road_m,
+                  everything())
+
   return(out_all)
 }
 
@@ -418,16 +443,16 @@ locate_event_i <- function(text_i,
     # (2) Tweet spelling is correctly spelled
 
     landmark_match_fuzzy <- landmark_match_fuzzy %>%
-      #filter(!(str_count(matched_words_tweet_spelling, "\\S+") %in% 1)) %>% # tweet: tajmall; correct: taj mall
-      dplyr::filter(!hunspell_check(.data$matched_words_tweet_spelling))
+      #filter(!(str_count(matched_words_text_spelling, "\\S+") %in% 1)) %>% # tweet: tajmall; correct: taj mall
+      dplyr::filter(!hunspell_check(.data$matched_words_text_spelling))
 
     road_match_fuzzy <- road_match_fuzzy %>%
-      #filter(!(str_count(matched_words_tweet_spelling, "\\S+") %in% 1)) %>%
-      dplyr::filter(!hunspell_check(.data$matched_words_tweet_spelling))
+      #filter(!(str_count(matched_words_text_spelling, "\\S+") %in% 1)) %>%
+      dplyr::filter(!hunspell_check(.data$matched_words_text_spelling))
 
     area_match_fuzzy <- area_match_fuzzy %>%
-      #filter(!(str_count(matched_words_tweet_spelling, "\\S+") %in% 1)) %>%
-      dplyr::filter(!hunspell_check(.data$matched_words_tweet_spelling))
+      #filter(!(str_count(matched_words_text_spelling, "\\S+") %in% 1)) %>%
+      dplyr::filter(!hunspell_check(.data$matched_words_text_spelling))
 
     #### Add fuzzy match to full match list
     # Starting with exact match ensures, if both exact and fuzzy, only
@@ -507,10 +532,10 @@ locate_event_i <- function(text_i,
   preps_in_tweet <- phrase_in_sentence_exact(text_i_no_stopwords, prepositions_all)
 
   ## Locations of Prepositions
-  if(length(as.character(preps_in_tweet$matched_words_tweet_spelling)) %in% 0){
+  if(length(as.character(preps_in_tweet$matched_words_text_spelling)) %in% 0){
     prep_locs <- NULL
   } else{
-    prep_locs_df <- lapply(as.character(preps_in_tweet$matched_words_tweet_spelling),
+    prep_locs_df <- lapply(as.character(preps_in_tweet$matched_words_text_spelling),
                            phrase_locate,
                            text_i_no_stopwords) %>%
       bind_rows %>%
@@ -539,13 +564,13 @@ locate_event_i <- function(text_i,
     locations_in_tweet_prep <- locations_in_tweet_prep %>%
 
       ## Prep Variables
-      dplyr::select("matched_words_tweet_spelling",
+      dplyr::select("matched_words_text_spelling",
                     "matched_words_correct_spelling") %>%
       dplyr::mutate(exact_match = FALSE,
                     location_type = "landmark") %>%
 
       ## Remove if landmark already found
-      dplyr::filter(!(.data$matched_words_tweet_spelling %in% locations_in_tweet$matched_words_tweet_spelling))
+      dplyr::filter(!(.data$matched_words_text_spelling %in% locations_in_tweet$matched_words_text_spelling))
 
     ## Add to main locations dataframe
     locations_in_tweet <- bind_rows(locations_in_tweet, locations_in_tweet_prep)
@@ -556,8 +581,6 @@ locate_event_i <- function(text_i,
 
   df_out <- data.frame(lat = NA,
                        lon = NA)
-
-  #df_out <- data.frame(matrix(nrow=1,ncol=0))
 
   ## Original Landmarks
   # Before any subsetting, save locations dataframe. Add all locations originally
@@ -644,13 +667,13 @@ locate_event_i <- function(text_i,
 
       #### locations_in_tweet dataframe
       locations_in_tweet[[paste0("crashword_prepos_tier_", i)]] <-
-        search_crashword_prepos(text_i, locations_in_tweet$matched_words_tweet_spelling, event_words, prepositions)
+        search_crashword_prepos(text_i, locations_in_tweet$matched_words_text_spelling, event_words, prepositions)
 
       locations_in_tweet[[paste0("crashword_other_prepos_tier_", i)]] <-
-        search_crashword_other_prepos(text_i, locations_in_tweet$matched_words_tweet_spelling, event_words, prepositions)
+        search_crashword_other_prepos(text_i, locations_in_tweet$matched_words_text_spelling, event_words, prepositions)
 
       locations_in_tweet[[paste0("prepos_before_crashword_tier_", i)]] <-
-        search_prep_loc(text_i, locations_in_tweet$matched_words_tweet_spelling, prepositions)
+        search_prep_loc(text_i, locations_in_tweet$matched_words_text_spelling, prepositions)
 
     }
 
@@ -680,7 +703,7 @@ locate_event_i <- function(text_i,
       road_match_agg_sp <- road_match_sp %>%
         mutate(id = 1) %>%
         group_by(.data$id) %>%
-        dplyr::summarise(geometry = st_union(geometry)) %>%
+        dplyr::summarise(geometry = st_union(.data$geometry)) %>%
         ungroup()
 
       #road_match_agg_sp$id <- 1
@@ -699,7 +722,7 @@ locate_event_i <- function(text_i,
       area_match_agg_sp <- area_match_agg_sp %>%
         mutate(id = 1) %>%
         group_by(.data$id) %>%
-        dplyr::summarise(geometry = st_union(geometry)) %>%
+        dplyr::summarise(geometry = st_union(.data$geometry)) %>%
         ungroup()
 
       # area_match_agg_sp$id <- 1
@@ -712,8 +735,8 @@ locate_event_i <- function(text_i,
     if(!quiet_debug) message("Section - 4.2")
     #### Locations
     # Add location of words in tweet to locations_in_tweet dataframe
-    word_locations <- lapply(as.character(locations_in_tweet$matched_words_tweet_spelling), phrase_locate, text_i) %>% bind_rows
-    locations_in_tweet <- merge(locations_in_tweet, word_locations, by.x="matched_words_tweet_spelling", by.y="word")
+    word_locations <- lapply(as.character(locations_in_tweet$matched_words_text_spelling), phrase_locate, text_i) %>% bind_rows
+    locations_in_tweet <- merge(locations_in_tweet, word_locations, by.x="matched_words_text_spelling", by.y="word")
     #locations_in_tweet_original <- locations_in_tweet
 
     ## check this issue??
@@ -731,7 +754,7 @@ locate_event_i <- function(text_i,
 
       crash_word_locations_vec <- c(crash_word_locations$word_loc_min, crash_word_locations$word_loc_max) %>% as.vector() %>% unique()
 
-      locations_in_tweet$dist_closest_crash_word <- lapply(1:nrow(locations_in_tweet), function(i){
+      locations_in_tweet$dist_closest_event_word <- lapply(1:nrow(locations_in_tweet), function(i){
         locations_in_tweet_i <- locations_in_tweet[i,]
 
         word_loc_min_dist <- min(abs(locations_in_tweet_i$word_loc_min - crash_word_locations_vec))
@@ -967,13 +990,13 @@ locate_event_i <- function(text_i,
 
       #### locations_in_tweet dataframe
       locations_in_tweet[[paste0("crashword_prepos_tier_", i)]] <-
-        search_crashword_prepos(text_i, locations_in_tweet$matched_words_tweet_spelling, event_words, prepositions)
+        search_crashword_prepos(text_i, locations_in_tweet$matched_words_text_spelling, event_words, prepositions)
 
       locations_in_tweet[[paste0("crashword_other_prepos_tier_", i)]] <-
-        search_crashword_other_prepos(text_i, locations_in_tweet$matched_words_tweet_spelling, event_words, prepositions)
+        search_crashword_other_prepos(text_i, locations_in_tweet$matched_words_text_spelling, event_words, prepositions)
 
       locations_in_tweet[[paste0("prepos_before_crashword_tier_", i)]] <-
-        search_prep_loc(text_i, locations_in_tweet$matched_words_tweet_spelling, prepositions)
+        search_prep_loc(text_i, locations_in_tweet$matched_words_text_spelling, prepositions)
 
       #### road_intersections dataframe
       if(nrow(road_intersections) > 0){
@@ -1061,7 +1084,6 @@ locate_event_i <- function(text_i,
           # crs_distance <<- crs_distance
           # text_i <<- text_i
 
-
           df_out <- determine_location_from_landmark(
             landmarks_final[landmarks_final[[prep_pattern_i]] %in% TRUE,],
             paste0("crashword_tier_",prep_pattern_i,"preposition_landmark"),
@@ -1116,7 +1138,6 @@ locate_event_i <- function(text_i,
     # **** 7.2.3 Ambiguous Pattern -------------------------------------------
     if(!quiet_debug) message("Section - 7.2.3")
     if((nrow(landmarks_final) > 0) & !loc_searched){
-
 
       df_out <- determine_location_from_landmark(
         landmarks_final,
@@ -1179,7 +1200,7 @@ locate_event_i <- function(text_i,
 
         #### Add distance to mentioned road
         if(!is.null(road_match_sp) > 0){
-          df_out$dist_mentioned_road <- st_distance(road_match_agg_sp, df_out) %>% as.numeric()
+          df_out$dist_mentioned_road_m <- st_distance(road_match_agg_sp, df_out) %>% as.numeric()
         }
 
         # If no dominant cluster
@@ -1216,7 +1237,7 @@ locate_event_i <- function(text_i,
           # If extent is small, make point
           df_out <- make_point_small_extent(df_out)
 
-          df_out$how_determined_landmark <- "road_area_intersection"
+          df_out$how_determined_location <- "road_area_intersection"
 
           loc_searched <- TRUE
         }
@@ -1248,7 +1269,7 @@ locate_event_i <- function(text_i,
           # If extent is small, make point
           df_out <- make_point_small_extent(df_out)
 
-          df_out$how_determined_landmark <- "one_road"
+          df_out$how_determined_location <- "one_road"
 
           loc_searched <- TRUE
 
@@ -1276,7 +1297,7 @@ locate_event_i <- function(text_i,
         # If extent is small, make point
         df_out <- make_point_small_extent(df_out)
 
-        df_out$how_determined_landmark <- "one_area"
+        df_out$how_determined_location <- "one_area"
 
         loc_searched <- TRUE
 
@@ -1292,13 +1313,13 @@ locate_event_i <- function(text_i,
   # 1. Add all location types found
   # 2. Add tweet
   if("landmark" %in% locations_in_tweet_original$location_type){
-    df_out$landmarks_all_tweet_spelling <- locations_in_tweet_original$matched_words_tweet_spelling[locations_in_tweet_original$location_type %in% "landmark"] %>% unique %>% paste(collapse=";")
+    df_out$landmarks_all_text_spelling <- locations_in_tweet_original$matched_words_text_spelling[locations_in_tweet_original$location_type %in% "landmark"] %>% unique %>% paste(collapse=";")
     df_out$landmarks_all_correct_spelling <- locations_in_tweet_original$matched_words_correct_spelling[locations_in_tweet_original$location_type %in% "landmark"] %>% unique %>% paste(collapse=";")
 
     landmark_gazetteer_orig <- landmark_gazetteer_orig %>%
       add_latlon_vars_to_sf()
 
-    df_out$landmarks_all_location <- landmark_gazetteer_orig[landmark_gazetteer_orig$name %in% locations_in_tweet_original$matched_words_tweet_spelling[locations_in_tweet_original$location_type %in% "landmark"],] %>%
+    df_out$landmarks_all_location <- landmark_gazetteer_orig[landmark_gazetteer_orig$name %in% locations_in_tweet_original$matched_words_text_spelling[locations_in_tweet_original$location_type %in% "landmark"],] %>%
       as.data.frame() %>%
       dplyr::mutate(location = paste0(.data$name,",",.data$lat,",",.data$lon)) %>%
       pull(location) %>%
@@ -1307,12 +1328,12 @@ locate_event_i <- function(text_i,
   }
 
   if("road" %in% locations_in_tweet_original$location_type){
-    df_out$roads_all_tweet_spelling <- locations_in_tweet_original$matched_words_tweet_spelling[locations_in_tweet_original$location_type %in% "road"] %>% unique %>% paste(collapse=";")
+    df_out$roads_all_text_spelling <- locations_in_tweet_original$matched_words_text_spelling[locations_in_tweet_original$location_type %in% "road"] %>% unique %>% paste(collapse=";")
     df_out$roads_all_correct_spelling <- locations_in_tweet_original$matched_words_correct_spelling[locations_in_tweet_original$location_type %in% "road"] %>% unique %>% paste(collapse=";")
   }
 
   if("neighborhood" %in% locations_in_tweet_original$location_type){
-    df_out$neighborhoods_all_tweet_spelling <- locations_in_tweet_original$matched_words_tweet_spelling[locations_in_tweet_original$location_type %in% "neighborhood"] %>% unique %>% paste(collapse=";")
+    df_out$neighborhoods_all_tweet_spelling <- locations_in_tweet_original$matched_words_text_spelling[locations_in_tweet_original$location_type %in% "neighborhood"] %>% unique %>% paste(collapse=";")
     df_out$neighborhoods_all_correct_spelling <- locations_in_tweet_original$matched_words_correct_spelling[locations_in_tweet_original$location_type %in% "neighborhood"] %>% unique %>% paste(collapse=";")
   }
 
@@ -1321,11 +1342,11 @@ locate_event_i <- function(text_i,
 
       rd_inter_df <- st_transform(road_intersections, crs_out) %>%
         sf_to_df() %>%
-        dplyr::mutate(intersection_all_tweet_spelling = paste0(.data$road_tweet_spelling_1,",", .data$road_tweet_spelling_2),
+        dplyr::mutate(intersection_all_text_spelling = paste0(.data$road_tweet_spelling_1,",", .data$road_tweet_spelling_2),
                       intersection_all_correct_spelling = paste0(.data$road_correct_spelling_1,",", .data$road_correct_spelling_2),
                       intersection_all_location = paste0(.data$intersection_all_correct_spelling, ",",.data$lat,",",.data$lon))
 
-      df_out$intersection_all_tweet_spelling <- rd_inter_df$intersection_all_tweet_spelling %>% unique %>% paste(collapse=";")
+      df_out$intersection_all_text_spelling <- rd_inter_df$intersection_all_text_spelling %>% unique %>% paste(collapse=";")
       df_out$intersection_all_correct_spelling <- rd_inter_df$intersection_all_correct_spelling %>% unique %>% paste(collapse=";")
       df_out$intersection_all_location <- rd_inter_df$intersection_all_location %>% unique %>% paste(collapse=";")
 
@@ -1334,7 +1355,9 @@ locate_event_i <- function(text_i,
 
 
   df_out$text <- text_i
-  if(!is.null(df_out$dist_closest_crash_word)) df_out$dist_closest_crash_word <- as.character(df_out$dist_closest_crash_word)
+  if(!is.null(df_out$dist_closest_event_word)) df_out$dist_closest_event_word <- as.character(df_out$dist_closest_event_word)
+
+
 
   return(df_out)
 }

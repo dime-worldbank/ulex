@@ -2,18 +2,18 @@
 
 ##### ******************************************************************** #####
 # OTHER ------------------------------------------------------------------------
-#' Check if a dataframe has zero observations
-#'
-#' @noRd
-#' @export
+# Check if a dataframe has zero observations
+#
+# @noRd
+# @export
 nrow_0 <- function(df){
   return(nrow(df) %in% 0)
 }
 
-#' Make N-Gram dataframe in chunks
-#'
-#' @noRd
-#' @export
+# Make N-Gram dataframe in chunks
+#
+# @noRd
+# @export
 make_gram_df_chunks <- function(df, chunk_size, FUN, quiet){
   # The function for making the gram dataframes can be memory intensive.
   # Here, we wrap around the function and make it into chunks.
@@ -34,10 +34,10 @@ make_gram_df_chunks <- function(df, chunk_size, FUN, quiet){
   return(gram_df_all)
 }
 
-#' Convert sf object to dataframe with lat and lon as variables
-#'
-#' @noRd
-#' @export
+# Convert sf object to dataframe with lat and lon as variables
+#
+# @noRd
+# @export
 sf_to_df <- function(data_sf,
                      lon_name = "lon",
                      lat_name = "lat"){
@@ -56,10 +56,10 @@ sf_to_df <- function(data_sf,
   return(data_df)
 }
 
-#' Add latitude and longitude variables to sf object
-#'
-#' @noRd
-#' @export
+# Add latitude and longitude variables to sf object
+#
+# @noRd
+# @export
 add_latlon_vars_to_sf <- function(data_sf,
                                   lon_name = "lon",
                                   lat_name = "lat"){
@@ -68,9 +68,14 @@ add_latlon_vars_to_sf <- function(data_sf,
   if( !("lon" %in% names(data_sf)) ){
 
     coord_df <- data_sf %>%
+      st_centroid() %>%
       st_coordinates() %>%
-      as.data.frame() %>%
-      head(1)
+      as.data.frame()
+
+    # coord_df <- data_sf %>%
+    #   st_coordinates() %>%
+    #   as.data.frame() %>%
+    #   head(1)
 
     names(coord_df) <- c(lon_name, lat_name)
 
@@ -83,10 +88,10 @@ add_latlon_vars_to_sf <- function(data_sf,
 
 }
 
-#' Drop units
-#'
-#' @noRd
-#' @export
+# Drop units
+#
+# @noRd
+# @export
 drop_units <- function(x) {
   # https://github.com/r-quantities/units/issues/68#issuecomment-341697927
   class(x) <- setdiff(class(x), "units")
@@ -94,10 +99,10 @@ drop_units <- function(x) {
   x
 }
 
-#' Extract dominant spatial cluster
-#'
-#' @noRd
-#' @export
+# Extract dominant spatial cluster
+#
+# @noRd
+# @export
 extract_dominant_cluster_all <- function(landmarks,
                                          close_thresh_km = .9, #0.75,
                                          cluster_thresh = 0.624,
@@ -119,12 +124,11 @@ extract_dominant_cluster_all <- function(landmarks,
                   lat_max = max(.data$lat),
                   lon_min = min(.data$lon),
                   lon_max = max(.data$lon)) %>%
-    dplyr::ungroup() #%>%
+    dplyr::ungroup()
 
   landmarks_df$max_dist_km <- geodist(x = landmarks_df[,c("lon_min", "lat_min")],
                                       y = landmarks_df[,c("lon_max", "lat_max")],
                                       paired = T) / 1000
-  #dplyr::mutate(max_dist_km = geodist(x = c()))
 
   ## Split into dataframes where all the landmarks are close versus far
   landmarks_df_close <- landmarks_df[landmarks_df$max_dist_km <= close_thresh_km,]
@@ -143,9 +147,6 @@ extract_dominant_cluster_all <- function(landmarks,
                crs = st_crs(landmarks)) %>%
       dplyr::mutate(general_specific = "specific")
 
-    # coordinates(landmarks_df_close) <- ~lon+lat
-    # crs(landmarks_df_close) <- CRS(as.character(landmarks@proj4string))
-    # landmarks_df_close$general_specific <- "specific"
   } else{
     landmarks_df_close <- NULL
   }
@@ -156,9 +157,6 @@ extract_dominant_cluster_all <- function(landmarks,
                crs = st_crs(landmarks)) %>%
       dplyr::mutate(general_specific = "general")
 
-    # coordinates(landmarks_df_far_many) <- ~lon+lat
-    # crs(landmarks_df_far_many) <- CRS(as.character(landmarks@proj4string))
-    # landmarks_df_far_many$general_specific <- "general"
   } else{
     landmarks_df_far_many <- NULL
   }
@@ -170,29 +168,6 @@ extract_dominant_cluster_all <- function(landmarks,
     landmarks_df_far_few <- landmarks_df_far_few %>%
       st_as_sf(coords = c("lon", "lat"),
                crs = st_crs(landmarks))
-
-    # coordinates(landmarks_df_far_few) <- ~lon+lat
-    # crs(landmarks_df_far_few) <- CRS(as.character(landmarks@proj4string))
-
-
-    #### Break up main dataframe into chunks
-    #N_df <- as.character(unique(landmarks_df_far_few$name)) %>% length()
-    #df_chunk_size = 1000
-    #starts <- seq(from = 1, to = N_df, by = df_chunk_size)
-
-    # rbind_uniqueid <- function(...){
-    #   # rbind sp
-    #
-    #   if(length(c(...)) %in% 0){
-    #     out <- NULL
-    #   } else if(length((c(...))) %in% 1){
-    #     out <- c(...)[1][[1]]
-    #   } else{
-    #     out <- bind(...)
-    #   }
-    #
-    #   return(out)
-    # }
 
     landmarks_df_far_few <- lapply(as.character(unique(landmarks_df_far_few$name)), function(name){
 
@@ -224,22 +199,34 @@ extract_dominant_cluster_all <- function(landmarks,
 
   # Format Output - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   if(collapse_specific_coords %in% T){
+
     landmarks_gs_df <- landmarks_gs %>%
       as.data.frame()
+
     landmarks_gs_df_g <- landmarks_gs_df %>%
       dplyr::filter(.data$general_specific %in% "general")
+
+    make_unique_string <- function(x){
+      x %>%
+        str_split(";") %>%
+        unlist() %>%
+        unique() %>%
+        paste(collapse = ";")
+    }
+
     landmarks_gs_df_s <- landmarks_gs_df %>%
       dplyr::filter(.data$general_specific %in% "specific") %>%
       group_by(.data$name) %>%
 
       # ideally would do summarise then summarise_at, but can't. So mutate, then
       # take the first value in each group
-      mutate_at(vars(-"lat", -"lon", -"name"), . %>% str_split(";") %>% unlist %>% unique %>% paste(collapse = ";")) %>%
+      mutate_at(vars(-"lat", -"lon", -"name"), make_unique_string) %>%
       dplyr::mutate(lat = mean(.data$lat),
                     lon = mean(.data$lon)) %>%
-      summarise_all(. %>% head(1)) %>%
+      #summarise_all(. %>% head(1)) %>%
 
-      ungroup()
+      ungroup() %>%
+      distinct(.data$name, .keep_all = T)
 
     for(var in names(landmarks_gs_df_s)[!(names(landmarks_gs_df_s) %in% c("lat", "lon"))]) landmarks_gs_df_s[[var]] <- landmarks_gs_df_s[[var]] %>% as.character()
     for(var in names(landmarks_gs_df_g)[!(names(landmarks_gs_df_g) %in% c("lat", "lon"))]) landmarks_gs_df_g[[var]] <- landmarks_gs_df_g[[var]] %>% as.character()
@@ -257,10 +244,10 @@ extract_dominant_cluster_all <- function(landmarks,
   return(landmarks_gs)
 }
 
-#' Extract dominant spatial cluster
-#'
-#' @noRd
-#' @export
+# Extract dominant spatial cluster
+#
+# @noRd
+# @export
 extract_dominant_cluster <- function(sdf,
                                      close_thresh_km = 0.9, #0.75,
                                      cluster_thresh = 0.624,
@@ -416,10 +403,10 @@ extract_dominant_cluster <- function(sdf,
   return(sdf_out)
 }
 
-#' Restrict landmarks by location
-#'
-#' @noRd
-#' @export
+# Restrict landmarks by location
+#
+# @noRd
+# @export
 restrict_landmarks_by_location <- function(landmark_match,
                                            landmark_gazetteer,
                                            sdf,
@@ -458,10 +445,10 @@ restrict_landmarks_by_location <- function(landmark_match,
               landmark_gazetteer = landmark_gazetteer))
 }
 
-#' Restrict to tier 1 landmarks
-#'
-#' @noRd
-#' @export
+# Restrict to tier 1 landmarks
+#
+# @noRd
+# @export
 restrict_gaz_tier1_landmarks <- function(landmark_match,
                                          landmark_gazetteer){
 
@@ -519,10 +506,10 @@ restrict_gaz_tier1_landmarks <- function(landmark_match,
   return(landmark_gazetteer)
 }
 
-#' If Location has a small extent, make a point
-#'
-#' @noRd
-#' @export
+# If Location has a small extent, make a point
+#
+# @noRd
+# @export
 make_point_small_extent <- function(sdf,
                                     dist_tresh = 500){
 
@@ -552,10 +539,10 @@ make_point_small_extent <- function(sdf,
 ##### ******************************************************************** #####
 # SEARCHING FOR LOCATIONS ------------------------------------------------------
 
-#' Check if phrase is in sentence with an exact match
-#'
-#' @noRd
-#' @export
+# Check if phrase is in sentence with an exact match
+#
+# @noRd
+# @export
 phrase_in_sentence_exact <- function(sentence,
                                      phrase_list){
 
@@ -579,8 +566,8 @@ phrase_in_sentence_exact <- function(sentence,
       unlist() %>%
       unique %>%
       as.data.frame %>%
-      dplyr::rename(matched_words_tweet_spelling = ".") %>%
-      dplyr::mutate(matched_words_correct_spelling = .data$matched_words_tweet_spelling) %>%
+      dplyr::rename(matched_words_text_spelling = ".") %>%
+      dplyr::mutate(matched_words_correct_spelling = .data$matched_words_text_spelling) %>%
       dplyr::mutate(exact_match = T)
 
   } else{
@@ -590,10 +577,10 @@ phrase_in_sentence_exact <- function(sentence,
   return(locations_df)
 }
 
-#' Check if phrase is in sentence using a fuzzy match, for one element
-#'
-#' @noRd
-#' @export
+# Check if phrase is in sentence using a fuzzy match, for one element
+#
+# @noRd
+# @export
 phrase_in_sentence_fuzzy_i <- function(sentence,
                                        phrase_list,
                                        fuzzy_match_landmark.min.word.length,
@@ -681,14 +668,14 @@ phrase_in_sentence_fuzzy_i <- function(sentence,
   if(sum(!is.na(phrase_match_loc)) > 0){
 
     # Locations Dataframe
-    locations_df <- data.frame(matched_words_tweet_spelling = sentence_words[!is.na(phrase_match_loc)],
+    locations_df <- data.frame(matched_words_text_spelling = sentence_words[!is.na(phrase_match_loc)],
                                matched_words_correct_spelling = phrase_list[phrase_match_loc[!is.na(phrase_match_loc)]],
                                exact_match = F)
 
     # Restrict to ones where first letter is the same
     if(first_letters_same == TRUE){
 
-      first_letter_tweet_spelling <- locations_df$matched_words_tweet_spelling %>% str_sub(1,1)
+      first_letter_tweet_spelling <- locations_df$matched_words_text_spelling %>% str_sub(1,1)
       first_letter_correct_spelling <- locations_df$matched_words_correct_spelling %>% str_sub(1,1)
 
       locations_df <- locations_df[first_letter_tweet_spelling %in% first_letter_correct_spelling,]
@@ -698,7 +685,7 @@ phrase_in_sentence_fuzzy_i <- function(sentence,
     # Restrict to ones where last letter is the same
     if(last_letters_same == TRUE){
 
-      last_letter_tweet_spelling <- locations_df$matched_words_tweet_spelling %>% str_sub(-1,-1)
+      last_letter_tweet_spelling <- locations_df$matched_words_text_spelling %>% str_sub(-1,-1)
       last_letter_correct_spelling <- locations_df$matched_words_correct_spelling %>% str_sub(-1,-1)
 
       locations_df <- locations_df[last_letter_tweet_spelling %in% last_letter_correct_spelling,]
@@ -707,7 +694,7 @@ phrase_in_sentence_fuzzy_i <- function(sentence,
 
     # Format
     locations_df <- locations_df %>%
-      dplyr::mutate(matched_words_tweet_spelling   = .data$matched_words_tweet_spelling %>% as.character(),
+      dplyr::mutate(matched_words_text_spelling   = .data$matched_words_text_spelling %>% as.character(),
                     matched_words_correct_spelling = .data$matched_words_correct_spelling %>% as.character())
 
   } else{
@@ -717,10 +704,10 @@ phrase_in_sentence_fuzzy_i <- function(sentence,
   return(locations_df)
 }
 
-#' Check if phrase is in sentence using a fuzzy match
-#'
-#' @noRd
-#' @export
+# Check if phrase is in sentence using a fuzzy match
+#
+# @noRd
+# @export
 phrase_in_sentence_fuzzy <- function(text_i,
                                      landmark_list,
                                      fuzzy_match_landmark.min.word.length,
@@ -748,7 +735,7 @@ phrase_in_sentence_fuzzy <- function(text_i,
     unique
 
   if(nrow(df) %in% 0){
-    df <- data.frame(matched_words_tweet_spelling = character(),
+    df <- data.frame(matched_words_text_spelling = character(),
                      matched_words_correct_spelling = character(),
                      exact_match = logical(),
                      stringsAsFactors = F)
@@ -757,10 +744,10 @@ phrase_in_sentence_fuzzy <- function(text_i,
   return(df)
 }
 
-#' Determine index of phrase in sentence
-#'
-#' @noRd
-#' @export
+# Determine index of phrase in sentence
+#
+# @noRd
+# @export
 phrase_locate <- function(phrase, sentence){
   # Description: Takes a word or phrase and a sentence as input and returns the
   # start and end word location of the phrase within the sentence. For example,
@@ -810,10 +797,10 @@ phrase_locate <- function(phrase, sentence){
   return(phrase_location_df)
 }
 
-#' Determine starting character of word
-#'
-#' @noRd
-#' @export
+# Determine starting character of word
+#
+# @noRd
+# @export
 tweet_word_start_character <- function(i, tweet_words_loc){
   # Supports: phrase_locate function
   if(i == 1){
@@ -823,10 +810,10 @@ tweet_word_start_character <- function(i, tweet_words_loc){
   }
 }
 
-#' Extract location after words
-#'
-#' @noRd
-#' @export
+# Extract location after words
+#
+# @noRd
+# @export
 extract_locations_after_words <- function(word_loc,
                                           text,
                                           landmarks){
@@ -906,7 +893,7 @@ extract_locations_after_words <- function(word_loc,
         # max_word_length <- landmarks_subset$matched_words_correct_spelling %>% str_count("\\S+") %>% max()
 
         landmarks_subset <- landmarks_subset %>%
-          dplyr::mutate(matched_words_tweet_spelling = word(text,
+          dplyr::mutate(matched_words_text_spelling = word(text,
                                                             word_loc + 1,
                                                             word_loc + i - 1))
 
@@ -925,10 +912,10 @@ extract_locations_after_words <- function(word_loc,
 ##### ******************************************************************** #####
 # SUBSET LOCATIONS -------------------------------------------------------------
 
-#' Remove landmark entry by type of landmark
-#'
-#' @noRd
-#' @export
+# Remove landmark entry by type of landmark
+#
+# @noRd
+# @export
 remove_gaz_by_type <- function(landmark_match,
                                landmark_gazetteer,
                                type_list){
@@ -964,10 +951,10 @@ remove_gaz_by_type <- function(landmark_match,
   return(landmark_gazetteer)
 }
 
-#' Remove general landmarks
-#'
-#' @noRd
-#' @export
+# Remove general landmarks
+#
+# @noRd
+# @export
 remove_general_landmarks <- function(landmark_match,
                                      landmark_gazetteer){
 
@@ -1024,10 +1011,10 @@ remove_general_landmarks <- function(landmark_match,
               landmark_gazetteer = landmark_gazetteer))
 }
 
-#' Resolving name overlaps with landmarks, roads, and areas
-#'
-#' @noRd
-#' @export
+# Resolving name overlaps with landmarks, roads, and areas
+#
+# @noRd
+# @export
 landmark_road_overlap <- function(locations_in_tweet){
   # Landmark intersects with road OR area, choose road
 
@@ -1064,10 +1051,10 @@ landmark_road_overlap <- function(locations_in_tweet){
 
 }
 
-#' Preference exact matches over fuzzy matches
-#'
-#' @noRd
-#' @export
+# Preference exact matches over fuzzy matches
+#
+# @noRd
+# @export
 exact_fuzzy_overlap <- function(locations_in_tweet){
   # If exact intersects with fuzzy, choose exact
   if((TRUE %in% locations_in_tweet$exact_match) & (FALSE %in% locations_in_tweet$exact_match)){
@@ -1099,10 +1086,10 @@ exact_fuzzy_overlap <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
-#' Check for phrase overlaps
-#'
-#' @noRd
-#' @export
+# Check for phrase overlaps
+#
+# @noRd
+# @export
 phase_overlap <- function(locations_in_tweet){
   # Phase within Phrase
   # If phrase within another phrase, choose longer one (pick "garden city mall" over "garden city").
@@ -1124,10 +1111,10 @@ phase_overlap <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
-#' Preference exact over fuzzy matches
-#'
-#' @noRd
-#' @export
+# Preference exact over fuzzy matches
+#
+# @noRd
+# @export
 exact_fuzzy_startendsame <- function(locations_in_tweet){
 
   # Same Start/End, choose correctly spelled
@@ -1155,16 +1142,16 @@ exact_fuzzy_startendsame <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
-#' Resolve name clashes between landmarks and roads
-#'
-#' @noRd
-#' @export
+# Resolve name clashes between landmarks and roads
+#
+# @noRd
+# @export
 landmark_road_samename <- function(locations_in_tweet){
   # If same name both road and landmark, drop landmark
   if(("landmark" %in% locations_in_tweet$location_type) & ("road" %in% locations_in_tweet$location_type)){
 
-    drop_if_landmark <- locations_in_tweet$matched_words_tweet_spelling %in%
-      locations_in_tweet$matched_words_tweet_spelling[locations_in_tweet$location_type %in% "road"]
+    drop_if_landmark <- locations_in_tweet$matched_words_text_spelling %in%
+      locations_in_tweet$matched_words_text_spelling[locations_in_tweet$location_type %in% "road"]
 
     locations_in_tweet <- locations_in_tweet[!(locations_in_tweet$location_type %in% "landmark" & drop_if_landmark),]
   }
@@ -1172,10 +1159,10 @@ landmark_road_samename <- function(locations_in_tweet){
   return(locations_in_tweet)
 }
 
-#' Extract intersections
-#'
-#' @noRd
-#' @export
+# Extract intersections
+#
+# @noRd
+# @export
 extract_intersections <- function(locations_in_tweet,
                                   roads,
                                   crs_distance,
@@ -1253,9 +1240,9 @@ extract_intersections <- function(locations_in_tweet,
             dplyr::rename(lon = .data$X) %>%
             dplyr::rename(lat = .data$Y) %>%
             dplyr::mutate(road_correct_spelling_1 = locations_in_tweet_roads_i$matched_words_correct_spelling[1],
-                          road_tweet_spelling_1 = locations_in_tweet_roads_i$matched_words_tweet_spelling[1],
+                          road_tweet_spelling_1 = locations_in_tweet_roads_i$matched_words_text_spelling[1],
                           road_correct_spelling_2 = locations_in_tweet_roads_i$matched_words_correct_spelling[2],
-                          road_tweet_spelling_2 = locations_in_tweet_roads_i$matched_words_tweet_spelling[2])
+                          road_tweet_spelling_2 = locations_in_tweet_roads_i$matched_words_text_spelling[2])
 
           # head(intersection_point)
           #
@@ -1264,9 +1251,9 @@ extract_intersections <- function(locations_in_tweet,
           #   dplyr::rename(lon = x) %>%
           #   dplyr::rename(lat = y) %>%
           #   dplyr::mutate(road_correct_spelling_1 = locations_in_tweet_roads_i$matched_words_correct_spelling[1],
-          #                 road_tweet_spelling_1 = locations_in_tweet_roads_i$matched_words_tweet_spelling[1],
+          #                 road_tweet_spelling_1 = locations_in_tweet_roads_i$matched_words_text_spelling[1],
           #                 road_correct_spelling_2 = locations_in_tweet_roads_i$matched_words_correct_spelling[2],
-          #                 road_tweet_spelling_2 = locations_in_tweet_roads_i$matched_words_tweet_spelling[2])
+          #                 road_tweet_spelling_2 = locations_in_tweet_roads_i$matched_words_text_spelling[2])
         }
       }
 
@@ -1299,10 +1286,10 @@ extract_intersections <- function(locations_in_tweet,
 
 }
 
-#' Preference specific landmarks over general landmarks
-#'
-#' @noRd
-#' @export
+# Preference specific landmarks over general landmarks
+#
+# @noRd
+# @export
 pref_specific <- function(landmark_gazetteer,
                           landmark_match,
                           cluster_thresh = 0.624){
@@ -1346,10 +1333,10 @@ pref_specific <- function(landmark_gazetteer,
   return(landmark_gazetteer)
 }
 
-#' Preference original names over augmented names
-#'
-#' @noRd
-#' @export
+# Preference original names over augmented names
+#
+# @noRd
+# @export
 pref_orig_name_with_gen_landmarks <- function(landmark_gazetteer,
                                               landmark_match){
   # Preferences the original name versus parallel landmark versions of names in
@@ -1403,10 +1390,10 @@ pref_orig_name_with_gen_landmarks <- function(landmark_gazetteer,
   return(landmark_gazetteer)
 }
 
-#' Preference original name over augment names
-#'
-#' @noRd
-#' @export
+# Preference original name over augment names
+#
+# @noRd
+# @export
 pref_type_with_gen_landmarks <- function(landmark_gazetteer,
                                          landmark_match,
                                          type_list){
@@ -1474,10 +1461,10 @@ pref_type_with_gen_landmarks <- function(landmark_gazetteer,
 ##### ******************************************************************** #####
 # ADD REGEX VARIABLES TO LOCATION DATA -----------------------------------------
 
-#' Search for text pattern
-#'
-#' @noRd
-#' @export
+# Search for text pattern
+#
+# @noRd
+# @export
 search_crashword_prepos <- function(text,
                                     location_words,
                                     crash_words,
@@ -1499,10 +1486,10 @@ search_crashword_prepos <- function(text,
   return(crashword_prepos_TF)
 }
 
-#' Search for text pattern
-#'
-#' @noRd
-#' @export
+# Search for text pattern
+#
+# @noRd
+# @export
 search_crashword_other_prepos <- function(text,
                                           location_words,
                                           crash_words,
@@ -1540,10 +1527,10 @@ search_crashword_other_prepos <- function(text,
   return(TF)
 }
 
-#' Check if preposition is before a location word
-#'
-#' @noRd
-#' @export
+# Check if preposition is before a location word
+#
+# @noRd
+# @export
 search_prep_loc <- function(text, location_words, prepositions){
 
   # Preposition before location word
@@ -1563,10 +1550,10 @@ search_prep_loc <- function(text, location_words, prepositions){
 ##### ******************************************************************** #####
 # DETERMINE EVENT LOCATION -----------------------------------------------------
 
-#' Choose between multiple landmarks
-#'
-#' @noRd
-#' @export
+# Choose between multiple landmarks
+#
+# @noRd
+# @export
 choose_between_multiple_landmarks <- function(df_out,
                                               roads,
                                               roads_final,
@@ -1598,9 +1585,9 @@ choose_between_multiple_landmarks <- function(df_out,
 
     if(nrow(df_out_sp) > 0){
       df_out <- df_out[df_out$matched_words_correct_spelling %in% df_out_sp$matched_words_correct_spelling,]
-      df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "multiple_landmarks_restrict_to_near_roads", sep=";")
+      df_out$how_determined_location <- paste(df_out$how_determined_location, "multiple_landmarks_restrict_to_near_roads", sep=";")
     } else{
-      df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "multiple_landmarks_tried_restrict_to_near_roads_but_none_near_road", sep=";")
+      df_out$how_determined_location <- paste(df_out$how_determined_location, "multiple_landmarks_tried_restrict_to_near_roads_but_none_near_road", sep=";")
     }
   }
 
@@ -1608,19 +1595,19 @@ choose_between_multiple_landmarks <- function(df_out,
   # if there are two words, one with distance -2 and one with distance 2, which.min()
   # will just give the first one. Consequently, use another approach to grab both.
   # Only use if a crash word exists in tweet.
-  if(is.null(df_out$dist_closest_crash_word) %in% FALSE){
-    landmark_closest_crashword <- df_out$matched_words_correct_spelling[abs(df_out$dist_closest_crash_word) %in% min(abs(df_out$dist_closest_crash_word))] %>% unique()
+  if(is.null(df_out$dist_closest_event_word) %in% FALSE){
+    landmark_closest_crashword <- df_out$matched_words_correct_spelling[abs(df_out$dist_closest_event_word) %in% min(abs(df_out$dist_closest_event_word))] %>% unique()
     df_out <- df_out[df_out$matched_words_correct_spelling %in% landmark_closest_crashword,]
-    df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "multiple_landmarks_choose_closest_crashword", sep=";")
+    df_out$how_determined_location <- paste(df_out$how_determined_location, "multiple_landmarks_choose_closest_crashword", sep=";")
   }
 
   return(df_out)
 }
 
-#' Choose between landmarks with the same name
-#'
-#' @noRd
-#' @export
+# Choose between landmarks with the same name
+#
+# @noRd
+# @export
 choose_between_landmark_same_name <- function(df_out,
                                               roads,
                                               roads_final,
@@ -1654,9 +1641,9 @@ choose_between_landmark_same_name <- function(df_out,
 
     if(TRUE %in% (df_out$distance_road_in_tweet < 500)){
       df_out <- df_out[df_out$distance_road_in_tweet < 500,]
-      df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "restrict_landmarks_close_to_road", sep=";")
+      df_out$how_determined_location <- paste(df_out$how_determined_location, "restrict_landmarks_close_to_road", sep=";")
     } else{
-      df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "tried_restricting_landmarks_close_to_road_but_none_close", sep=";")
+      df_out$how_determined_location <- paste(df_out$how_determined_location, "tried_restricting_landmarks_close_to_road_but_none_close", sep=";")
     }
 
   }
@@ -1669,7 +1656,7 @@ choose_between_landmark_same_name <- function(df_out,
 
       if(TRUE %in% grepl(type_tier_i, df_out$type)){
         df_out <- df_out[grepl(type_tier_i, df_out$type),]
-        df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, paste0("restrict_by_type_", type_tier_i), sep=";")
+        df_out$how_determined_location <- paste(df_out$how_determined_location, paste0("restrict_by_type_", type_tier_i), sep=";")
       }
 
     }
@@ -1678,28 +1665,28 @@ choose_between_landmark_same_name <- function(df_out,
   # 2. If multiple landmarks with same name, use one if bus station
   #if(TRUE %in% grepl("bus_station|transit_station|stage_added", df_out$type)){
   #  df_out <- df_out[grepl("bus_station|transit_station|stage_added", df_out$type),]
-  #  df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "choose_bus_station", sep=";")
+  #  df_out$how_determined_location <- paste(df_out$how_determined_location, "choose_bus_station", sep=";")
   #}
 
   # 3. If multiple landmarks with same name, use one if mall
   #if(TRUE %in% grepl("shopping_mall", df_out$type)){
   #  df_out <- df_out[grepl("shopping_mall", df_out$type),]
-  #  df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "choose_shopping_mall", sep=";")
+  #  df_out$how_determined_location <- paste(df_out$how_determined_location, "choose_shopping_mall", sep=";")
   #}
 
   # 3. If multiple landmarks with same name, use one with more types
   nrow_before <- nrow(df_out)
   df_out <- df_out[stri_count(df_out$type, fixed = ";") %in% max(stri_count(df_out$type, fixed = ";")),]
   nrow_after <- nrow(df_out)
-  if(nrow_before > nrow_after) df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "choose_landmark_more_types", sep=";")
+  if(nrow_before > nrow_after) df_out$how_determined_location <- paste(df_out$how_determined_location, "choose_landmark_more_types", sep=";")
 
   return(df_out)
 }
 
-#' Snap location to road
-#'
-#' @noRd
-#' @export
+# Snap location to road
+#
+# @noRd
+# @export
 snap_landmark_to_road <- function(df_out,
                                   roads,
                                   roads_final,
@@ -1748,7 +1735,7 @@ snap_landmark_to_road <- function(df_out,
 
     df_out_sp_snap <- df_out_sp
 
-    df_out_sp_snap$how_determined_landmark <- paste(df_out_sp_snap$how_determined_landmark, "snapped_to_road", sep=";")
+    df_out_sp_snap$how_determined_location <- paste(df_out_sp_snap$how_determined_location, "snapped_to_road", sep=";")
 
     df_out_sp_snap <- df_out_sp_snap %>%
       dplyr::select(-c("lon", "lat")) %>%
@@ -1758,17 +1745,17 @@ snap_landmark_to_road <- function(df_out,
     #  st_drop_geometry()
   } else{
     df_out_sp_snap <- df_out
-    df_out_sp_snap$how_determined_landmark <- paste(df_out_sp_snap$how_determined_landmark, "tried_to_snapped_to_road_but_road_too_far", sep=";")
+    df_out_sp_snap$how_determined_location <- paste(df_out_sp_snap$how_determined_location, "tried_to_snapped_to_road_but_road_too_far", sep=";")
   }
 
   return(df_out_sp_snap)
 
 }
 
-#' Find other landmarks that might be near road
-#'
-#' @noRd
-#' @export
+# Find other landmarks that might be near road
+#
+# @noRd
+# @export
 find_landmark_similar_name_close_to_road <- function(df_out,
                                                      roads,
                                                      roads_final,
@@ -1912,7 +1899,7 @@ find_landmark_similar_name_close_to_road <- function(df_out,
         df_out$lat <- st_coordinates(coords)[[2]]
         df_out$lon <- st_coordinates(coords)[[1]]
         df_out$matched_words_correct_spelling <- paste(c(unique(df_out$matched_words_correct_spelling),unique(landmark_gazetteer_subset$name)), collapse=";")
-        df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "broadended_landmark_search_found_landmarks_similar_name_near_road", sep=";")
+        df_out$how_determined_location <- paste(df_out$how_determined_location, "broadended_landmark_search_found_landmarks_similar_name_near_road", sep=";")
 
       }
     }
@@ -1923,10 +1910,10 @@ find_landmark_similar_name_close_to_road <- function(df_out,
 
 }
 
-#' Determine location from landmark
-#'
-#' @noRd
-#' @export
+# Determine location from landmark
+#
+# @noRd
+# @export
 determine_location_from_landmark <- function(df_out,
                                              how_determined_text = "",
                                              landmark_gazetteer,
@@ -1936,10 +1923,9 @@ determine_location_from_landmark <- function(df_out,
                                              crs_distance,
                                              text_i){
 
-
   df_out <- merge(df_out, landmark_gazetteer, by.x="matched_words_correct_spelling", by.y="name", all.x=T, all.y=F)
 
-  df_out$how_determined_landmark <- how_determined_text
+  df_out$how_determined_location <- how_determined_text
 
   df_out <- df_out %>%
     st_as_sf() %>%
@@ -1953,26 +1939,24 @@ determine_location_from_landmark <- function(df_out,
 
   df_out$type <- "landmark"
 
-  if(is.null(df_out$dist_closest_crash_word[1])){
-    df_out$dist_closest_crash_word <- NA
+  if(is.null(df_out$dist_closest_event_word[1])){
+    df_out$dist_closest_event_word <- NA
   }
-
-  #df_out <- subset(df_out, select=c(lon, lat, matched_words_correct_spelling, matched_words_tweet_spelling, type, how_determined_landmark, dist_closest_crash_word))
 
   df_out <- df_out %>%
     st_as_sf() %>%
     add_latlon_vars_to_sf() %>%
     dplyr::select("lon", "lat", "matched_words_correct_spelling",
-                  "matched_words_tweet_spelling", "type", "how_determined_landmark",
-                  "dist_closest_crash_word")
+                  "matched_words_text_spelling", "type", "how_determined_location",
+                  "dist_closest_event_word")
 
   return(df_out)
 }
 
-#' Determine location from intersection
-#'
-#' @noRd
-#' @export
+# Determine location from intersection
+#
+# @noRd
+# @export
 determine_location_from_intersection <- function(df_out,
                                                  how_determined_text = ""){
 
@@ -1981,14 +1965,14 @@ determine_location_from_intersection <- function(df_out,
     sf_to_df()
 
   df_out$matched_words_correct_spelling <- paste(df_out$road_correct_spelling_1, df_out$road_correct_spelling_2, sep=",")
-  df_out$matched_words_tweet_spelling <- paste(df_out$road_tweet_spelling_1, df_out$road_tweet_spelling_2, sep=",")
+  df_out$matched_words_text_spelling <- paste(df_out$road_tweet_spelling_1, df_out$road_tweet_spelling_2, sep=",")
 
-  #df_out <- subset(df_out, select=c(lon, lat, matched_words_correct_spelling, matched_words_tweet_spelling))
+  #df_out <- subset(df_out, select=c(lon, lat, matched_words_correct_spelling, matched_words_text_spelling))
   df_out <- df_out %>%
     add_latlon_vars_to_sf() %>%
-    dplyr::select("lon", "lat", "matched_words_correct_spelling", "matched_words_tweet_spelling")
+    dplyr::select("lon", "lat", "matched_words_correct_spelling", "matched_words_text_spelling")
   df_out$type <- "intersection"
-  df_out$how_determined_landmark <- how_determined_text
+  df_out$how_determined_location <- how_determined_text
 
   return(df_out)
 }

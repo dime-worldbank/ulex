@@ -106,73 +106,43 @@ tweets <- c("crash occurred near garden city on thika road on your way towards r
             "crash near mathare centre along juja road")
 
 crashes_sf <- locate_event(text = tweets,
-                           landmark_gazetteer = landmarks_sf,
+                           landmark_gazetteer = landmarks_aug_sf,
+                           areas = nbo_sf,
+                           roads = roads_sf,
+                           event_words = c("accident", "crash", "collision", "wreck", "overturn"),
+                           quiet = F)
+
+tweet_i <- "agtgaffraeggfefaer"
+crashes_sf <- locate_event(text = tweet_i,
+                           landmark_gazetteer = landmarks_aug_sf,
                            areas = nbo_sf,
                            roads = roads_sf,
                            event_words = c("accident", "crash", "collision", "wreck", "overturn"),
                            quiet = F)
 
 crashes_sf
-library(leaflet)
-leaflet() %>%
-  addTiles() %>%
-  addCircles(data = crashes_sf,
-             popup = ~text,
-             color = "red",
-             opacity = 0.9,
-             weight = 5)
+aa
 
+ aa %>%
+  st_as_sf() %>%
+  add_latlon_vars_to_sf()
 
-a <- landmarks_aug_sf %>%
-  st_drop_geometry() %>%
-  group_by(name) %>%
-  dplyr::summarise(n = n()) %>%
-  ungroup()
+ data_sf <- aa %>% st_as_sf()
+ if( !("lon" %in% names(data_sf)) ){
 
-library(ggplot2)
+   coord_df <- data_sf %>%
+     st_centroid() %>%
+     st_coordinates() %>%
+     as.data.frame()
 
-ggplot() +
-  geom_sf(data = roads_sf,
-          color = "forestgreen",
-          linewidth = 0.6) +
-  geom_sf(data = landmarks_sf,
-          color = "blue",
-          size = 0.1,
-          alpha = 0.5) +
-  geom_sf(data = nbo_sf,
-          fill = "gray",
-          color = "black",
-          linewidth = 0.5,
-          alpha = 0.2) +
-  theme_void()
+   names(coord_df) <- c(lon_name, lat_name)
 
-leaflet() %>%
-  addPolygons(data = nbo_sf,
-              color = "gray",
-              opacity = 1,
-              weight = 2,
-              popup = ~name) %>%
-  addPolylines(data = roads_sf,
-               color = "green",
-               opacity = 1,
-               weight = 1,
-               popup = ~name) %>%
-  addCircles(data = landmarks_sf,
-             color = "blue",
-             opacity = 1,
-             weight = 1,
-             popup = ~name)
+   data_sf <- data_sf %>%
+     bind_cols(coord_df)
 
+ }
 
-
-landmarks_aug_sf %>%
-  filter(name %>% str_detect("kenyatta"))
-
-
-
-
-
-
+crashes_sf
 
 
 text = tweets[1]
@@ -219,18 +189,4 @@ crs_out = 4326
 quiet = T
 mc_cores = 1
 
-
-
-
-crashes_sf %>%
-  dplyr::select(text, lat_all, lon_all)
-
-
-
-library(ggplot2)
-ken$area_km <- ken$area_km %>% as.numeric()
-ken$area_km_bin <- ken$area_km >= 2500
-ggplot() +
-  geom_sf(data = ken,
-          aes(fill = area_km_bin))
 

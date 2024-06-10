@@ -208,7 +208,7 @@ augment_gazetteer <- function(landmarks,
   make_ngram_df <- function(df){
     # Function for making an n-gram dataframe
     n_gram_df <- df %>%
-      dplyr::pull(.data$name) %>%
+      dplyr::pull("name") %>%
       tokens(remove_symbols = F, remove_punct = F) %>%
       tokens_ngrams(n=2:3, concatenator = " ") %>%
       as.list() %>%
@@ -242,7 +242,7 @@ augment_gazetteer <- function(landmarks,
   # variables from the landmark dataframe (lat, lon, type, etc)
   make_skipgram_df <- function(df){
     skip_gram_df <- df %>%
-      dplyr::pull(.data$name) %>%
+      dplyr::pull("name") %>%
       tokens(remove_symbols = F, remove_punct = F) %>%
       tokens_skipgrams(n=2:3,
                        skip=0:4,
@@ -655,6 +655,9 @@ augment_gazetteer <- function(landmarks,
     dplyr::select("name", "type", "general_specific", "name_original")
 
   landmarks <- st_transform(landmarks, crs_out)
+
+  # 8 Cleanup ------------------------------------------------------------------
+  landmarks$general_specific <- NULL
 
   return(landmarks)
 }

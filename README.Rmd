@@ -34,11 +34,13 @@ Text often contains references to the locations of events where we want to extra
 
 > crash occurred near garden city on thika road on your way towards roysambu.
 
-The tweet contains three location references: (1) garden city, (2) thika road and (3) roysambu, where 'garden city' is the name of multiple locations that are over 20 kilometers apart. Here, we are interested in extracting the location of the garden city location on thika road that represents the crash site.
+The tweet contains three location references: (1) garden city, (2) thika road and (3) roysambu, where 'garden city' is the name of multiple locations. Here, we are interested in extracting the location of the garden city location on Thika road that represents the crash site.
 
-The Unique Location Extractor (ULEx) geoparses text to extract the unique location of events. The algorithm takes advantage of contextual information contained within text (references to roads or administrate areas, such as neighborhoods) and determines which location references do not reference the event of interest and should be ignored.
+__The Unique Location Extractor (ULEx) geoparses text to extract the unique location of events.__ The algorithm takes advantage of contextual information contained within text (references to roads or administrate areas, such as neighborhoods) and determines which location references do not reference the event of interest and should be ignored.
 
-This package was originally developed to extract locations of road traffic crashes from reports of crashes via Twitter, specifically in the context of Nairobi, Kenya using the Twitter feed [@Ma3Route](https://twitter.com/Ma3Route?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor).
+This package was originally developed to extract locations of road traffic crashes from reports of crashes via Twitter, specifically in the context of Nairobi, Kenya using the Twitter feed [@Ma3Route](https://twitter.com/Ma3Route?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor). For more information, see our article here:
+
+> [Milusheva S, Marty R, Bedoya G, Williams S, Resor E, Legovini A (2021) Applying machine learning and geolocation techniques to social media data (Twitter) to develop a resource for urban planning. PLoS ONE 16(2): e0244317. https://doi.org/10.1371/journal.pone.0244317](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244317)
 
 ## Installation <a name="installation"></a>
 
@@ -46,7 +48,7 @@ You can install the development version of `ulex` from GitHub with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("worldbank/rsocialwatcher")
+devtools::install_github("dime-worldbank/ulex")
 ```
 
 ## Main functions <a name="main-functions"></a>
@@ -168,7 +170,9 @@ landmarks_sf <- bind_rows(amenities_sf,
 head(landmarks_sf)
 ```
 
-#### Map locations
+#### Map landmark, road, and area dictionaries
+
+The below map shows the locations in the landmark, roads, and area dictionaries.
 
 ```{r, message = F, warning=F}
 ggplot() +
@@ -193,26 +197,30 @@ ggplot() +
 
 ### Augment Gazetteer <a name="aug-gazetteer"></a>
 
+Here, we augment the landmark gazetteer---which increases the number of entries from about 11,000 to 50,000.
+
 ```{r, message = F, warning=F}
 landmarks_aug_sf <- augment_gazetteer(landmarks_sf)
+
+print(nrow(landmarks_sf))
+print(nrow(landmarks_aug_sf))
+
+head(landmarks_aug_sf)
 ```
 
 ### Locate Events <a name="loc-events"></a>
 
-We geolocate 5 tweets.
-
-1. __crash at garden city__
-
+We geolocate the location of crashes contained in five texts.
 
 ```{r, message = F, warning=F}
-tweets <- c("crash at garden city",
+texts <- c("crash at garden city",
             "crash occurred near garden city on thika road on your way towards 
             roysambu",
             "crash at intersection of juja road and outer ring rd",
             "crash occured near roysambu on thika rd",
             "crash near mathare centre along juja road")
 
-crashes_sf <- locate_event(text = tweets,
+crashes_sf <- locate_event(text = texts,
                            landmark_gazetteer = landmarks_aug_sf,
                            areas = nbo_sf,
                            roads = roads_sf,
@@ -231,6 +239,31 @@ ggplot() +
           color = "black",
           fill = "red") +
   theme_void()
+```
+
+The output of `locate_event()` has the following variables:
+
+* __text:__ Original text to geocode.
+* __matched_words_correct_spelling:__ Names of locations used to geocode event, as names appear in landmark, roads, and area datasets.    
+* __matched_words_text_spelling:__ Names of locations used to geocode event, as name appears in text.      
+* __dist_closest_event_word:__ Distance of landmark to event word (ie, number of words between event word and location word).           
+* __type:__ Type of location (e.g., landmark, intersection).                            
+* __how_determined_location:__ Information on how location was determined.           
+* __dist_mentioned_road_m:__ Distance (meters) of event location to mentioned road.             
+* __lon_all:__ All landmark locations found in text (longitude).                           
+* __lat_all:__ All landmark locations found in text (latitude).                           
+* __landmarks_all_text_spelling:__ Names of all landmarks found, as name appears in text.      
+* __landmarks_all_correct_spelling:__ Names of all landmarks found, as name appears in landmark gazetteer.   
+* __landmarks_all_location:__ Names of landmarks and locations (name,latitude,longitude).            
+* __roads_all_text_spelling:__ Names of roads in text, as name appears in text.          
+* __roads_all_correct_spelling:__ Name of roads in text, as name appears in road dataset.        
+* __intersection_all_text_spelling:__ Name of intersection (e.g., pairs of roads that make intersection), as name appears in text.   
+* __intersection_all_correct_spelling:__ Name of intersection (e.g., pairs of roads that make intersection), as name appears road dataset.
+* __intersection_all_location:__ Name and locations of intersections (name,latitude,longitude).         
+* __geometry:__ Geometry of event location.
+
+```{r, message = F, warning=F}
+head(crashes_sf)
 ```
 
 ## Additional information on main functions <a name="addn-info"></a>
