@@ -126,4 +126,13 @@ tokens/
 !/**/*.png
 docs
 
+#######################
+# Other
 DESCRIPTION
+!/**/DESCRIPTION
+
+NAMESPACE
+!/**/NAMESPACE
+
+_pkgdown.yml
+!/**/*.yml
