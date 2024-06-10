@@ -84,7 +84,7 @@ augment_gazetteer <- function(landmarks,
   landmarks$type <- landmarks[[landmarks.type_var]]
   landmarks$number_words <- str_count(landmarks$name, "\\S+")
   landmarks <- landmarks %>%
-    dplyr::select(name, type, number_words)
+    dplyr::select("name", "type", "number_words")
 
   #### Prep spatial
   landmarks <- st_transform(landmarks, crs_distance)

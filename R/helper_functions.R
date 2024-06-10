@@ -437,7 +437,7 @@ restrict_landmarks_by_location <- function(landmark_match,
   sdf <- sdf %>%
     dplyr::mutate(id = 1) %>%
     group_by(id) %>%
-    dplyr::summarise(geometry = st_union(geometry)) %>%
+    dplyr::summarise(geometry = st_union(.data$geometry)) %>%
     ungroup()
 
   dist_road <- st_distance(landmark_match_sp, sdf) %>% as.numeric()
@@ -495,7 +495,7 @@ restrict_gaz_tier1_landmarks <- function(landmark_match,
           st_union() %>%
           st_buffer(dist = 1000) %>%
           st_as_sf() %>%
-          dplyr::rename(geometry = x)
+          dplyr::rename(geometry = .data$x)
         tier1_locs_i$id <- 1
 
         landmark_gazetteer_gs_i_cand <- landmark_gazetteer_gs_i[as.vector(st_intersects(landmark_gazetteer_gs_i, tier1_locs_i, sparse = F)),]
@@ -527,9 +527,9 @@ make_point_small_extent <- function(sdf,
   sdf_extent <- extent(sdf)
 
   max_extent_dist <- as.numeric(geodist(x = c(sdf_extent@xmin,
-                                          sdf_extent@ymin),
-                                    y = c(sdf_extent@xmax,
-                                          sdf_extent@ymax)))
+                                              sdf_extent@ymin),
+                                        y = c(sdf_extent@xmax,
+                                              sdf_extent@ymax)))
 
   if(max_extent_dist < dist_tresh){
     #sdf <- sdf %>% gCentroid()
@@ -538,7 +538,7 @@ make_point_small_extent <- function(sdf,
       st_union() %>%
       st_centroid() %>%
       st_as_sf() %>%
-      dplyr::rename(geometry = x)
+      dplyr::rename(geometry = .data$x)
 
     sdf$id <- 1 # dummy variable to make spatial dataframe
   }
@@ -578,7 +578,7 @@ phrase_in_sentence_exact <- function(sentence,
       unique %>%
       as.data.frame %>%
       dplyr::rename(matched_words_tweet_spelling = ".") %>%
-      dplyr::mutate(matched_words_correct_spelling = matched_words_tweet_spelling) %>%
+      dplyr::mutate(matched_words_correct_spelling = .data$matched_words_tweet_spelling) %>%
       dplyr::mutate(exact_match = T)
 
   } else{
@@ -705,8 +705,8 @@ phrase_in_sentence_fuzzy_i <- function(sentence,
 
     # Format
     locations_df <- locations_df %>%
-      dplyr::mutate(matched_words_tweet_spelling   = matched_words_tweet_spelling %>% as.character(),
-                    matched_words_correct_spelling = matched_words_correct_spelling %>% as.character())
+      dplyr::mutate(matched_words_tweet_spelling   = .data$matched_words_tweet_spelling %>% as.character(),
+                    matched_words_correct_spelling = .data$matched_words_correct_spelling %>% as.character())
 
   } else{
     locations_df <- data.frame(NULL)
@@ -773,12 +773,17 @@ phrase_locate <- function(phrase, sentence){
 
     # Sentence Word and Character Position
     sentence_words_loc <- strsplit(sentence," ") %>%
-      as.data.frame %>%
-      dplyr::rename(word = names(.)[1])
+      as.data.frame #%>%
+    #dplyr::rename(word = names(.)[1])
+    names(sentence_words_loc)[1] <- "word"
+
     sentence_words_loc$word <- as.character(sentence_words_loc$word)
     sentence_words_loc$word_number <- 1:nrow(sentence_words_loc)
     sentence_words_loc$word_length <- nchar(sentence_words_loc$word)
-    sentence_words_loc$word_char_start <- lapply(1:nrow(sentence_words_loc), tweet_word_start_character, sentence_words_loc) %>% unlist
+    sentence_words_loc$word_char_start <- lapply(1:nrow(sentence_words_loc),
+                                                 tweet_word_start_character,
+                                                 sentence_words_loc) %>%
+      unlist()
 
     phrase_char_start_end <- str_locate_all(sentence, phrase)[[1]]
 
@@ -1357,7 +1362,7 @@ pref_orig_name_with_gen_landmarks <- function(landmark_gazetteer,
                                  by.y = "matched_words_correct_spelling",
                                  all.x = F)
 
-  # Pull out ones already considered general [TODO: Need to do?]
+  # Pull out ones already considered general
   #landmark_gazetteer_gs <- landmark_gazetteer_gs[landmark_gazetteer_gs$general_specific %in% "general",]
   landmark_gazetteer_gs <- extract_dominant_cluster_all(landmark_gazetteer_gs,
                                                         return_general_landmarks = "all")
@@ -1744,7 +1749,7 @@ snap_landmark_to_road <- function(df_out,
     df_out_sp_snap$how_determined_landmark <- paste(df_out_sp_snap$how_determined_landmark, "snapped_to_road", sep=";")
 
     df_out_sp_snap <- df_out_sp_snap %>%
-      dplyr::select(-c(lon, lat)) %>%
+      dplyr::select(-c("lon", "lat")) %>%
       add_latlon_vars_to_sf()
 
     #df_out_sp_snap <- df_out_sp_snap %>%
@@ -1909,10 +1914,10 @@ find_landmark_similar_name_close_to_road <- function(df_out,
       ## If there is a dominant cluster ...
       if(!is.null(dom_cluster)){
 
-        coords <- gCentroid(dom_cluster)
+        coords <- st_centroid(dom_cluster)
 
-        df_out$lat <- coordinates(coords)[[2]]
-        df_out$lon <- coordinates(coords)[[1]]
+        df_out$lat <- st_coordinates(coords)[[2]]
+        df_out$lon <- st_coordinates(coords)[[1]]
         df_out$matched_words_correct_spelling <- paste(c(unique(df_out$matched_words_correct_spelling),unique(landmark_gazetteer_subset$name)), collapse=";")
         df_out$how_determined_landmark <- paste(df_out$how_determined_landmark, "broadended_landmark_search_found_landmarks_similar_name_near_road", sep=";")
 
@@ -1986,7 +1991,7 @@ determine_location_from_intersection <- function(df_out,
   #df_out <- subset(df_out, select=c(lon, lat, matched_words_correct_spelling, matched_words_tweet_spelling))
   df_out <- df_out %>%
     add_latlon_vars_to_sf() %>%
-    dplyr::select(lon, lat, matched_words_correct_spelling, matched_words_tweet_spelling)
+    dplyr::select("lon", "lat", "matched_words_correct_spelling", "matched_words_tweet_spelling")
   df_out$type <- "intersection"
   df_out$how_determined_landmark <- how_determined_text
 

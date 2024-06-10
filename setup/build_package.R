@@ -12,14 +12,14 @@ if(F){
   #R CMD build --as-cran "~/Documents/Github/googletraffic"
   #R CMD check --as-cran "~/Documents/Github/googletraffic/googletraffic_0.0.0.9000.tar.gz"
 
-  pkgdown::build_favicons(pkg = "~/Documents/Github/rsocialwatcher",
+  pkgdown::build_favicons(pkg = "~/Documents/Github/ulex",
                           overwrite = FALSE)
 
   devtools::check("~/Documents/Github/ulex")
 
-  devtools::check_win_devel("~/Documents/Github/rsocialwatcher")
-  devtools::check_win_release("~/Documents/Github/rsocialwatcher")
-  devtools::check_win_oldrelease("~/Documents/Github/rsocialwatcher")
+  devtools::check_win_devel("~/Documents/Github/ulex")
+  devtools::check_win_release("~/Documents/Github/ulex")
+  devtools::check_win_oldrelease("~/Documents/Github/ulex")
 
   devtools::build("~/Documents/Github/ulex")
 }

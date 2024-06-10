@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ulex)](https://cran.r-project.org/package=ulex)
 [![activity](https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex)](https://github.com/dime-worldbank/ulex/graphs/commit-activity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
+[![R-CMD-check](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 * [Overview](#overview)
@@ -242,6 +243,8 @@ The `augment_gazetteer` function adds additional landmarks to account for differ
 2. Adding landmarks according to a set of rules: for example, if a landmark starts or ends with a certain word, an alternative version of the landmark is added that removes that word. Here, words along categories of landmarks are removed, where a user may not reference the category; for example, a user will more likely say `McDonalds` than `McDonalds restaurant.`
 3. Removes landmarks that refer to large geographic areas (e.g., roads). Roads and areas are dealt with separately; this function focuses on cleaning a gazetteer of specific points/landmarks.
 
+__Pages S4 to S6 in the supplementary information file [here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244317#sec005) provides further details on the augment gazetteer algorithm__
+
 ### `locate_event()` <a name="addn-loc"></a>
 
 The `locate_event` function extracts landmarks from text and determines the unique location of events from the text. The algorithm works in two steps: (1) finding locations in text and (2) determining a unique location.
@@ -265,3 +268,5 @@ After extracting landmarks, the algorithm seeks to identify a single location us
 4. The location closest to the event word within the text is used.
 5. If the location name has multiple locations, we (1) restrict to locations near any mentioned road or area, (2) check for a dominant cluster of locations and (3) prioritize certain landmark types over others (e.g., a user is more likely to reference a large, well known location type like a stadium).
 6. If a landmark is not found, but a road or area are found, the road or area are returned. If a road and area are mentioned, the intersection of the road and area is returned.
+
+__Pages S15 to S19 in the supplementary information file [here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244317#sec005) provides further details on the locate event algorithm__

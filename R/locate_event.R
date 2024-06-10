@@ -27,6 +27,9 @@
 #' @param quiet If `FALSE`, prints text that is being geocoded. (Default: `TRUE`).
 #' @param mc_cores If > 1, uses geolocates events in parallel across multiple cores relying on the `parallel` package. (Default: `1`).
 #'
+#' @return `sf` spatial dataframe of geolocated events.
+#' @export
+#'
 #' @import dplyr
 #' @import tidyr
 #' @import readr
@@ -36,16 +39,14 @@
 #' @import stringi
 #' @import ngram
 #' @import hunspell
-#' @import stringdist
 #' @import tm
-#' @import raster
 #' @import parallel
 #' @import sf
-#' @import quanteda
 #' @import geodist
 #' @import spacyr
-#' @return `sf` spatial dataframe of geolocated events.
-#' @export
+#' @rawNamespace import(stringdist, except = c(extract))
+#' @rawNamespace import(raster, except = c(union, intersect, select, extract))
+#' @rawNamespace import(quanteda, except = c(stopwords, dictionary))
 
 locate_event <- function(text,
                          landmark_gazetteer,
@@ -416,27 +417,27 @@ locate_event_i <- function(text_i,
 
     landmark_match_fuzzy <- landmark_match_fuzzy %>%
       #filter(!(str_count(matched_words_tweet_spelling, "\\S+") %in% 1)) %>% # tweet: tajmall; correct: taj mall
-      dplyr::filter(!hunspell_check(matched_words_tweet_spelling))
+      dplyr::filter(!hunspell_check(.data$matched_words_tweet_spelling))
 
     road_match_fuzzy <- road_match_fuzzy %>%
       #filter(!(str_count(matched_words_tweet_spelling, "\\S+") %in% 1)) %>%
-      dplyr::filter(!hunspell_check(matched_words_tweet_spelling))
+      dplyr::filter(!hunspell_check(.data$matched_words_tweet_spelling))
 
     area_match_fuzzy <- area_match_fuzzy %>%
       #filter(!(str_count(matched_words_tweet_spelling, "\\S+") %in% 1)) %>%
-      dplyr::filter(!hunspell_check(matched_words_tweet_spelling))
+      dplyr::filter(!hunspell_check(.data$matched_words_tweet_spelling))
 
     #### Add fuzzy match to full match list
     # Starting with exact match ensures, if both exact and fuzzy, only
     # exact is kept.
     landmark_match <- bind_rows(landmark_match, landmark_match_fuzzy) %>%
-      distinct(matched_words_correct_spelling, .keep_all = TRUE)
+      distinct(.data$matched_words_correct_spelling, .keep_all = TRUE)
 
     road_match <- bind_rows(road_match, road_match_fuzzy) %>%
-      distinct(matched_words_correct_spelling, .keep_all = TRUE)
+      distinct(.data$matched_words_correct_spelling, .keep_all = TRUE)
 
     area_match <- bind_rows(area_match, area_match_fuzzy) %>%
-      distinct(matched_words_correct_spelling, .keep_all = TRUE)
+      distinct(.data$matched_words_correct_spelling, .keep_all = TRUE)
 
   }
 
