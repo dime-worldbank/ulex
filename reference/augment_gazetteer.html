@@ -75,7 +75,7 @@
 <span>  pos_rm.all <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ADJ"</span>, <span class="st">"ADP"</span>, <span class="st">"ADV"</span>, <span class="st">"AUX"</span>, <span class="st">"CCONJ"</span>, <span class="st">"INTJ"</span>, <span class="st">"NUM"</span>, <span class="st">"PRON"</span>, <span class="st">"SCONJ"</span>,</span>
 <span>    <span class="st">"VERB"</span>, <span class="st">"X"</span><span class="op">)</span>,</span>
 <span>  pos_rm.except_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NOUN"</span>, <span class="st">"PROPN"</span><span class="op">)</span>, type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bus"</span>, <span class="st">"restaurant"</span>,</span>
-<span>    <span class="st">"bank"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="st">"bank"</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">""</span><span class="op">)</span>,</span>
 <span>  close_thresh_km <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -188,7 +188,7 @@
 
 
 <dt>pos_rm.except_type</dt>
-<dd><p>When specify part-of-speech categories to remove in <code>pos_rm.all</code>, when to override <code>pos_rm.all</code> and keep the word. Names list with: (1) <code>pos</code> (if the word is also another type of part-of-speech); (2) <code>type</code> (if the word is also a certain type of place); and (3) <code>name</code> (if the word includes certain text). Example: <code>list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"), name = c("parliament"))</code>. (Default: <code>list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"))</code>).</p></dd>
+<dd><p>When specify part-of-speech categories to remove in <code>pos_rm.all</code>, when to override <code>pos_rm.all</code> and keep the word. Names list with: (1) <code>pos</code> (if the word is also another type of part-of-speech); (2) <code>type</code> (if the word is also a certain type of place); and (3) <code>name</code> (if the word includes certain text). Example: <code>list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"), name = c("parliament"))</code>. (Default: <code>list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"), name = "")</code>).</p></dd>
 
 
 <dt>close_thresh_km</dt>
