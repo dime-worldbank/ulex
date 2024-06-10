@@ -19,7 +19,6 @@ knitr::opts_chunk$set(
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ulex)](https://cran.r-project.org/package=ulex)
 [![activity](https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex)](https://github.com/dime-worldbank/ulex/graphs/commit-activity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
-[![R-CMD-check](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 * [Overview](#overview)
@@ -36,7 +35,7 @@ Text often contains references to the locations of events where we want to extra
 
 The tweet contains three location references: (1) garden city, (2) thika road and (3) roysambu, where 'garden city' is the name of multiple locations. Here, we are interested in extracting the location of the garden city location on Thika road that represents the crash site.
 
-__The Unique Location Extractor (ULEx) geoparses text to extract the unique location of events.__ The algorithm takes advantage of contextual information contained within text (references to roads or administrate areas, such as neighborhoods) and determines which location references do not reference the event of interest and should be ignored.
+__The Unique Location Extractor (ULEx) geoparses text to extract the unique location of events.__ The algorithm takes advantage of contextual information contained within text (references to roads or administrate areas, such as neighborhoods) and determines which location references do not reference the event of interest and should be ignored. Moreover, the algorithm accounts for differences in spelling between how a user writes a location and how the location is captured in a dictionary of locations; users may use shorter, informal names while a location dictionary may just contain formal names. For example, a user may write _"crash near mathare center"_, while a landmark dictionary contains _"mathare social justice centre"_.
 
 This package was originally developed to extract locations of road traffic crashes from reports of crashes via Twitter, specifically in the context of Nairobi, Kenya using the Twitter feed [@Ma3Route](https://twitter.com/Ma3Route?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor). For more information, see our article here:
 
