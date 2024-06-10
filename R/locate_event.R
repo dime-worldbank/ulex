@@ -21,7 +21,7 @@
 #' @param fuzzy_match Whether to implement fuzzy matching of landmarks using levenstein distance. (Default: `TRUE`).
 #' @param fuzzy_match.min_word_length Minimum word length to use for fuzzy matching; vector length must be the same as `fuzzy_match.dist`. (Default: `c(5,11)`).
 #' @param fuzzy_match.dist Allowable levenstein distances for fuzzy matching; vector length must be same as `fuzzy_match.min_word_length`. (Default: `c(1,2)`).
-#' @param fuzzy_match.ngram_max The number of n-grams that should be extracted from text to calculate a levensteing distance against landmarks. For example, if the text is composed of 5 words: w1 w2 w3 w4 and `fuzzy_match.ngram_max = 3`, the function extracts [w1 w2 w3] and compares the levenstein distance to all landmarks. Then in checks [w2 w3 w4], etc. (Default: `3`).
+#' @param fuzzy_match.ngram_max The number of n-grams that should be extracted from text to calculate a levensteing distance against landmarks. For example, if the text is composed of 5 words: w1 w2 w3 w4 and `fuzzy_match.ngram_max = 3`, the function extracts `w1 w2 w3` and compares the levenstein distance to all landmarks. Then in checks `w2 w3 w4`, etc. (Default: `3`).
 #' @param fuzzy_match.first_letters_same When implementing a fuzzy match, should the first letter of the original and found word be the same? (Default: `TRUE`).
 #' @param fuzzy_match.last_letters_same When implementing a fuzzy match, should the last letter of the original and found word be the same? (Default: `TRUE`).
 #' @param quiet If `FALSE`, prints text that is being geocoded. (Default: `TRUE`).
@@ -44,8 +44,9 @@
 #' @import sf
 #' @import geodist
 #' @import spacyr
+#' @import utils
 #' @rawNamespace import(stringdist, except = c(extract))
-#' @rawNamespace import(raster, except = c(union, intersect, select, extract))
+#' @rawNamespace import(raster, except = c(union, intersect, select, extract, tail, stack, head, unstack))
 #' @rawNamespace import(quanteda, except = c(stopwords, dictionary))
 
 locate_event <- function(text,
@@ -136,13 +137,14 @@ locate_event <- function(text,
     # The function depends on the coordinate names being lon at lat. Here, use
     # an efficient and hacky way to ensure that. TODO: NEED TO FIX, NOT DO
     # THIS HACKY SOLUTION.
-    landmark_gazetteer_df <- landmark_gazetteer@data
-    landmark_gazetteer_coords <- landmark_gazetteer %>% coordinates() %>% as.data.frame()
-    names(landmark_gazetteer_coords) <- c("lon", "lat")
-    landmark_gazetteer_spdf <- bind_cols(landmark_gazetteer_df, landmark_gazetteer_coords)
-    coordinates(landmark_gazetteer_spdf) <- ~lon+lat
-    crs(landmark_gazetteer_spdf) <- CRS(as.character(landmark_gazetteer@proj4string))
-    landmark_gazetteer <- landmark_gazetteer_spdf
+
+    #landmark_gazetteer_df <- landmark_gazetteer@data
+    #landmark_gazetteer_coords <- landmark_gazetteer %>% coordinates() %>% as.data.frame()
+    #names(landmark_gazetteer_coords) <- c("lon", "lat")
+    #landmark_gazetteer_spdf <- bind_cols(landmark_gazetteer_df, landmark_gazetteer_coords)
+    #coordinates(landmark_gazetteer_spdf) <- ~lon+lat
+    #crs(landmark_gazetteer_spdf) <- CRS(as.character(landmark_gazetteer@proj4string))
+    #landmark_gazetteer <- landmark_gazetteer_spdf
   }
 
   #### Project Data
@@ -490,10 +492,10 @@ locate_event_i <- function(text_i,
 
   ## Update locations_in_tweet with new landmark dataframe
   locations_in_tweet <- locations_in_tweet %>%
-    dplyr::filter((location_type %in% "road") |
-                    (location_type %in% "area") |
-                    ((location_type %in% "landmark") &
-                       (matched_words_correct_spelling %in% landmark_match$matched_words_correct_spelling)))
+    dplyr::filter((.data$location_type %in% "road") |
+                    (.data$location_type %in% "area") |
+                    ((.data$location_type %in% "landmark") &
+                       (.data$matched_words_correct_spelling %in% landmark_match$matched_words_correct_spelling)))
 
   # ** 2.2 Preposition Locations --------------------------------------------------
   if(!quiet_debug) message("Section - 2.2")
@@ -537,13 +539,13 @@ locate_event_i <- function(text_i,
     locations_in_tweet_prep <- locations_in_tweet_prep %>%
 
       ## Prep Variables
-      dplyr::select(matched_words_tweet_spelling,
-                    matched_words_correct_spelling) %>%
+      dplyr::select("matched_words_tweet_spelling",
+                    "matched_words_correct_spelling") %>%
       dplyr::mutate(exact_match = FALSE,
                     location_type = "landmark") %>%
 
       ## Remove if landmark already found
-      dplyr::filter(!(matched_words_tweet_spelling %in% locations_in_tweet$matched_words_tweet_spelling))
+      dplyr::filter(!(.data$matched_words_tweet_spelling %in% locations_in_tweet$matched_words_tweet_spelling))
 
     ## Add to main locations dataframe
     locations_in_tweet <- bind_rows(locations_in_tweet, locations_in_tweet_prep)
@@ -563,7 +565,7 @@ locate_event_i <- function(text_i,
   locations_in_tweet_original <- locations_in_tweet
 
   N_check <- locations_in_tweet %>%
-    dplyr::filter(!(location_type %in% "area")) %>%
+    dplyr::filter(!(.data$location_type %in% "area")) %>%
     nrow()
 
   if(N_check > 0){
@@ -592,7 +594,7 @@ locate_event_i <- function(text_i,
             st_union() %>%
             st_centroid() %>%
             st_as_sf() %>%
-            dplyr::rename(geometry = x)
+            dplyr::rename(geometry = .data$x)
           road_point$name <- name
           road_point$type <- "road"
           road_point$general_specific <- "specific"
@@ -614,7 +616,7 @@ locate_event_i <- function(text_i,
         road_points$uid <- max(landmark_gazetteer$uid) + 1:nrow(road_points)
 
         landmark_gazetteer <- landmark_gazetteer %>%
-          dplyr::select(uid, name, name_original, type, general_specific)
+          dplyr::select("uid", "name", "name_original", "type", "general_specific")
 
         landmark_gazetteer <- list(landmark_gazetteer, road_points) %>% do.call(what = "rbind")
 
@@ -838,10 +840,10 @@ locate_event_i <- function(text_i,
 
     ## Update locations_in_tweet with new landmark dataframe
     locations_in_tweet <- locations_in_tweet %>%
-      dplyr::filter((location_type %in% "road") |
-                      (location_type %in% "area") |
-                      ((location_type %in% "landmark") &
-                         (matched_words_correct_spelling %in% landmark_match$matched_words_correct_spelling)))
+      dplyr::filter((.data$location_type %in% "road") |
+                      (.data$location_type %in% "area") |
+                      ((.data$location_type %in% "landmark") &
+                         (.data$matched_words_correct_spelling %in% landmark_match$matched_words_correct_spelling)))
 
 
     # ** 4.5 Restrict Gazetteer ------------------------------------------------
@@ -922,17 +924,14 @@ locate_event_i <- function(text_i,
     ## Update locations_in_tweet with new landmark dataframe
     # Keep all roads
     locations_in_tweet <- locations_in_tweet %>%
-      dplyr::filter((location_type %in% "road") |
-                      (location_type %in% "area") |
-                      ((location_type %in% "landmark") &
-                         (matched_words_correct_spelling %in% landmark_match$matched_words_correct_spelling)))
+      dplyr::filter((.data$location_type %in% "road") |
+                      (.data$location_type %in% "area") |
+                      ((.data$location_type %in% "landmark") &
+                         (.data$matched_words_correct_spelling %in% landmark_match$matched_words_correct_spelling)))
 
     # ** 4.9 Add always keep back in -------------------------------------------
     if(!quiet_debug) message("Section - 4.9")
 
-    # TODO: further restrict landmark gaz here!! Only if always_keep no longer
-    # exists in the gazetteer, THEN we add it back it -- allows us to incorporate
-    # previous subsetting
     locations_in_tweet <- bind_rows(locations_in_tweet, locations_in_tweet_alw_keep) %>% unique()
 
     # If name in alw_keep gazetteer still exists in main gazetteer, remove from alw_keep
@@ -1154,9 +1153,9 @@ locate_event_i <- function(text_i,
       df_out <- df_out %>%
         group_by(id) %>%
         summarise_all(function(x) x %>% unique %>% paste(collapse = ";")) %>%
-        dplyr::rename(lon_all = lon,
-                      lat_all = lat) %>%
-        dplyr::select(-id) %>%
+        dplyr::rename(lon_all = .data$lon,
+                      lat_all = .data$lat) %>%
+        dplyr::select(-"id") %>%
         st_drop_geometry()
 
       #### Dominant Cluster
@@ -1168,8 +1167,8 @@ locate_event_i <- function(text_i,
           st_union() %>%
           st_centroid() %>%
           st_as_sf() %>%
-          dplyr::rename(geometry = x) %>%
-          dplyr::select(geometry) %>%
+          dplyr::rename(geometry = .data$x) %>%
+          dplyr::select("geometry") %>%
           bind_cols(df_out)
 
         # coords <- gCentroid(df_out_sp)
@@ -1322,9 +1321,9 @@ locate_event_i <- function(text_i,
 
       rd_inter_df <- st_transform(road_intersections, crs_out) %>%
         sf_to_df() %>%
-        dplyr::mutate(intersection_all_tweet_spelling = paste0(road_tweet_spelling_1,",", road_tweet_spelling_2),
-                      intersection_all_correct_spelling = paste0(road_correct_spelling_1,",", road_correct_spelling_2),
-                      intersection_all_location = paste0(intersection_all_correct_spelling, ",",lat,",",lon))
+        dplyr::mutate(intersection_all_tweet_spelling = paste0(.data$road_tweet_spelling_1,",", .data$road_tweet_spelling_2),
+                      intersection_all_correct_spelling = paste0(.data$road_correct_spelling_1,",", .data$road_correct_spelling_2),
+                      intersection_all_location = paste0(.data$intersection_all_correct_spelling, ",",.data$lat,",",.data$lon))
 
       df_out$intersection_all_tweet_spelling <- rd_inter_df$intersection_all_tweet_spelling %>% unique %>% paste(collapse=";")
       df_out$intersection_all_correct_spelling <- rd_inter_df$intersection_all_correct_spelling %>% unique %>% paste(collapse=";")

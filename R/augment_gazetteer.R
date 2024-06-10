@@ -28,7 +28,7 @@
 #' @param rm.name_begin Remove the landmark if it begins with one of these words. Implemented after N/skip-grams and parallel landmarks are added. (Default: `c(tm::stopwords("en"), c("near","at","the", "towards", "near"))`).
 #' @param rm.name_end Remove the landmark if it ends with one of these words. Implemented after N/skip-grams and parallel landmarks are added. (Default: `c("highway", "road", "rd", "way", "ave", "avenue", "street", "st")`).
 #' @param pos_rm.all Part-of-speech categories to remove. Part-of-speech determined by Spacy. (Default: `c("ADJ", "ADP", "ADV", "AUX", "CCONJ", "INTJ", "NUM", "PRON", "SCONJ", "VERB", "X")`).
-#' @param pos_rm.except_type When specify part-of-speech categories to remove in `pos_rm.all`, when to override `pos_rm.all` and keep the word. Names list with: (1) `pos` (if the word is also another type of part-of-speech); (2) `type` (if the word is also a certain type of place); and (3) `name` (if the word includes certain text). Example: `list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"), name = c("parliament"))`. (Default: `list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"))`).
+#' @param pos_rm.except_type When specify part-of-speech categories to remove in `pos_rm.all`, when to override `pos_rm.all` and keep the word. Names list with: (1) `pos` (if the word is also another type of part-of-speech); (2) `type` (if the word is also a certain type of place); and (3) `name` (if the word includes certain text). Example: `list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"), name = c("parliament"))`. (Default: `list(pos = c("NOUN", "PROPN"), type = c("bus", "restaurant", "bank"), name = "")`).
 #' @param close_thresh_km When to consider locations close together. Used when determining if a landmark name with multiple locations are specific (close together) or general (far apart). (Default: `1`).
 #' @param quiet Print progress of function. (Default: `TRUE`).
 #'
@@ -62,7 +62,8 @@ augment_gazetteer <- function(landmarks,
                               rm.name_end = c("highway", "road", "rd", "way", "ave", "avenue", "street", "st"),
                               pos_rm.all = c("ADJ", "ADP", "ADV", "AUX", "CCONJ", "INTJ", "NUM", "PRON", "SCONJ", "VERB", "X"),
                               pos_rm.except_type = list(pos = c("NOUN", "PROPN"),
-                                                        type = c("bus", "restaurant", "bank")),
+                                                        type = c("bus", "restaurant", "bank"),
+                                                        name = ""),
                               close_thresh_km = 1,
                               quiet = TRUE){
 
@@ -114,7 +115,7 @@ augment_gazetteer <- function(landmarks,
     if(nrow(landmarks_slash) >= 1){
       par_landmarks.slash <- lapply(1:nrow(landmarks_slash), function(landmark_i){
         if(!quiet){
-          if((landmark_i %% 100) == 0) print(paste0(landmark_i, " / ", nrow(landmarks_slash)))
+          if((landmark_i %% 100) == 0) message(paste0(landmark_i, " / ", nrow(landmarks_slash)))
         }
         landmarks_slash_i <- landmarks_slash[landmark_i,]
         alt_names <- strsplit(landmarks_slash_i$name, breaks)[[1]]
@@ -196,7 +197,7 @@ augment_gazetteer <- function(landmarks,
   # Grab landmarks to make landmarks from
   landmarks_for_ngrams_df <- landmarks %>%
     sf_to_df() %>%
-    filter(number_words %in% grams.min_words:grams.max_words)
+    dplyr::filter(.data$number_words %in% grams.min_words:grams.max_words)
 
   if(is.null(landmarks_for_ngrams_df$lat[1])){
     landmarks_for_ngrams_df <- landmarks_for_ngrams_df
@@ -207,19 +208,19 @@ augment_gazetteer <- function(landmarks,
   make_ngram_df <- function(df){
     # Function for making an n-gram dataframe
     n_gram_df <- df %>%
-      dplyr::pull(name) %>%
+      dplyr::pull(.data$name) %>%
       tokens(remove_symbols = F, remove_punct = F) %>%
       tokens_ngrams(n=2:3, concatenator = " ") %>% # TODO: parameterize 2:3
       as.list() %>%
       lapply(function(x) x %>% t %>% as.data.frame()) %>%
       bind_rows() %>%
       bind_cols(df) %>%
-      dplyr::rename(name_original = name) %>%
-      pivot_longer(c(-name_original, -type, -number_words, -lat, -lon),
+      dplyr::rename(name_original = .data$name) %>%
+      pivot_longer(c(-"name_original", -"type", -"number_words", -"lat", -"lon"),
                    names_to = "name_iter_N", values_to = "name") %>%
-      filter(!is.na(name)) %>%
-      filter(name != name_original) %>%
-      dplyr::select(-name_iter_N)
+      dplyr::filter(!is.na(.data$name)) %>%
+      dplyr::filter(.data$name != .data$name_original) %>%
+      dplyr::select(-"name_iter_N")
 
     return(n_gram_df)
   }
@@ -231,7 +232,7 @@ augment_gazetteer <- function(landmarks,
   # Grab landmarks to make landmarks from
   landmarks_for_skipgrams_df <- landmarks %>%
     sf_to_df() %>%
-    filter(number_words %in% grams.min_words:grams.max_words)
+    dplyr::filter(.data$number_words %in% grams.min_words:grams.max_words)
 
   if(is.null(landmarks_for_skipgrams_df$lat[1])){
     landmarks_for_skipgrams_df <- landmarks_for_skipgrams_df
@@ -241,7 +242,7 @@ augment_gazetteer <- function(landmarks,
   # variables from the landmark dataframe (lat, lon, type, etc)
   make_skipgram_df <- function(df){
     skip_gram_df <- df %>%
-      dplyr::pull(name) %>%
+      dplyr::pull(.data$name) %>%
       tokens(remove_symbols = F, remove_punct = F) %>%
       tokens_skipgrams(n=2:3,
                        skip=0:4,
@@ -250,12 +251,12 @@ augment_gazetteer <- function(landmarks,
       lapply(function(x) x %>% t %>% as.data.frame()) %>%
       bind_rows() %>%
       bind_cols(df) %>%
-      dplyr::rename(name_original = name) %>%
-      pivot_longer(c(-name_original, -type, -number_words, -lat, -lon),
+      dplyr::rename(name_original = .data$name) %>%
+      pivot_longer(c(-"name_original", -"type", -"number_words", -"lat", -"lon"),
                    names_to = "name_iter_N", values_to = "name") %>%
-      filter(!is.na(name)) %>%
-      filter(name != name_original) %>%
-      dplyr::select(-name_iter_N)
+      dplyr::filter(!is.na(.data$name)) %>%
+      dplyr::filter(.data$name != .data$name_original) %>%
+      dplyr::select(-"name_iter_N")
 
     return(skip_gram_df)
   }
@@ -265,8 +266,8 @@ augment_gazetteer <- function(landmarks,
 
   if(grams.skip_gram_first_last_word_match){
     skip_gram_df <- skip_gram_df %>%
-      filter(word(name_original,1) == word(name,1),
-             word(name_original,-1) == word(name,-1))
+      dplyr::filter(word(.data$name_original,1) == word(.data$name,1),
+                    word(.data$name_original,-1) == word(.data$name,-1))
   }
 
   #### Append
@@ -360,8 +361,12 @@ augment_gazetteer <- function(landmarks,
   if(is.null(parallel.word_diff)){
     word_diffs <- NULL
   } else if(parallel.word_diff %in% "default"){
-    word_diffs <- read.csv("https://raw.githubusercontent.com/ramarty/Unique-Location-Extractor/master/data/word_differences.csv",
-                           stringsAsFactors = F)
+    word_diffs <- data <- data.frame(
+      id = 1:5,
+      version_1 = c("center", "theater", "license", "train", "rail"),
+      version_2 = c("centre", "theatre", "licence", "railway", "railway")
+    )
+
     word_diffs <- lapply(1:nrow(word_diffs), function(i) c(word_diffs$version_1[i], word_diffs$version_2[i]))
 
     # User defined list
@@ -617,12 +622,13 @@ augment_gazetteer <- function(landmarks,
   ## Restrict to cases where potentially remove
   landmarks_rm <- landmarks[str_count(landmarks$name, '\\w+') %in% 1,] # one word
   landmarks_rm <- landmarks_rm[hunspell_check(landmarks_rm$name),] # spelled correctly
-  landmarks_rm <- landmarks_rm[is.na(as.numeric(landmarks_rm$name)),] # is not number (eg, 87)
-
+  suppressWarnings({
+    landmarks_rm <- landmarks_rm[is.na(as.numeric(landmarks_rm$name)),] # is not number (eg, 87)
+  })
   ## Add parts of speech
   pos_df <- spacy_parse(landmarks_rm$name %>% unique(), tag = TRUE) %>%
-    dplyr::select(token, pos, tag) %>%
-    dplyr::rename(name = token) %>%
+    dplyr::select("token", "pos", "tag") %>%
+    dplyr::rename(name = .data$token) %>%
     unique()
   landmarks_rm <- merge(landmarks_rm, pos_df, by = "name")
 
@@ -646,7 +652,7 @@ augment_gazetteer <- function(landmarks,
 
   # ** 7.6 Variables to output -------------------------------------------------
   landmarks <- landmarks %>%
-    dplyr::select(name, type, general_specific, name_original)
+    dplyr::select("name", "type", "general_specific", "name_original")
 
   landmarks <- st_transform(landmarks, crs_out)
 

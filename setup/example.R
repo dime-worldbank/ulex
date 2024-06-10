@@ -15,7 +15,6 @@ library(hunspell)
 library(stringdist)
 library(tm)
 library(raster)
-library(rgeos)
 library(parallel)
 library(jsonlite)
 library(maptools)
@@ -51,7 +50,7 @@ prepositions <- list(c("at", "next to","around", "just after", "opposite","opp",
                           c("past","from","on"))
 event <- c("accidents", "accident", "crash", "overturn", "collision", "wreck")
 junction <- c("intersection", "junction")
-false_positive <- c("githurai bus", "githurai matatu", 
+false_positive <- c("githurai bus", "githurai matatu",
                             "githurai 45 bus", "githurai 45 matatu",
                             "city hoppa bus", "hoppa bus",
                             "rongai bus", "rongai matatu", "rongai matatus",
@@ -67,14 +66,14 @@ text_all <- c("",
               "")
 
 alg_out_sf <- locate_event(text = tweet,
-                           landmark_gazetteer = landmark_gazetteer_orig, 
-                           roads = roads_nairobi, 
-                           areas = areas_nairobi, 
-                           prepositions_list = prepositions, 
-                           event_words = event, 
-                           junction_words = junction, 
-                           false_positive_phrases = false_positive, 
-                           type_list = type, 
+                           landmark_gazetteer = landmark_gazetteer_orig,
+                           roads = roads_nairobi,
+                           areas = areas_nairobi,
+                           prepositions_list = prepositions,
+                           event_words = event,
+                           junction_words = junction,
+                           false_positive_phrases = false_positive,
+                           type_list = type,
                            clost_dist_thresh = 500,
                            fuzzy_match = TRUE,
                            fuzzy_match.min_word_length = c(5,11),
@@ -82,7 +81,7 @@ alg_out_sf <- locate_event(text = tweet,
                            fuzzy_match.ngram_max = 3,
                            fuzzy_match.first_letters_same = TRUE,
                            fuzzy_match.last_letters_same = TRUE,
-                           crs_distance = "+init=epsg:21037", 
+                           crs_distance = "+init=epsg:21037",
                            crs_out = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0",
                            quiet = F)
 

@@ -113,12 +113,12 @@ extract_dominant_cluster_all <- function(landmarks,
   # between coordinates
   landmarks_df <- landmarks %>%
     sf_to_df() %>%
-    dplyr::group_by(name) %>%
+    dplyr::group_by(.data$name) %>%
     dplyr::mutate(N_name = n(),
-                  lat_min = min(lat),
-                  lat_max = max(lat),
-                  lon_min = min(lon),
-                  lon_max = max(lon)) %>%
+                  lat_min = min(.data$lat),
+                  lat_max = max(.data$lat),
+                  lon_min = min(.data$lon),
+                  lon_max = max(.data$lon)) %>%
     dplyr::ungroup() #%>%
 
   landmarks_df$max_dist_km <- geodist(x = landmarks_df[,c("lon_min", "lat_min")],
@@ -224,18 +224,20 @@ extract_dominant_cluster_all <- function(landmarks,
 
   # Format Output - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   if(collapse_specific_coords %in% T){
-    landmarks_gs_df <- landmarks_gs %>% as.data.frame()
-    landmarks_gs_df_g <- landmarks_gs_df %>% filter(general_specific %in% "general")
+    landmarks_gs_df <- landmarks_gs %>%
+      as.data.frame()
+    landmarks_gs_df_g <- landmarks_gs_df %>%
+      dplyr::filter(.data$general_specific %in% "general")
     landmarks_gs_df_s <- landmarks_gs_df %>%
-      filter(general_specific %in% "specific") %>%
+      dplyr::filter(.data$general_specific %in% "specific") %>%
       group_by(name) %>%
 
       # ideally would do summarise then summarise_at, but can't. So mutate, then
       # take the first value in each group
-      mutate_at(vars(-lat, -lon, -name), . %>% str_split(";") %>% unlist %>% unique %>% paste(collapse = ";")) %>%
-      dplyr::mutate(lat = mean(lat),
-                    lon = mean(lon)) %>%
-      summarise_all(. %>% head(1)) %>%
+      mutate_at(vars(-"lat", -"lon", -"name"), . %>% str_split(";") %>% unlist %>% unique %>% paste(collapse = ";")) %>%
+      dplyr::mutate(lat = mean(.data$lat),
+                    lon = mean(.data$lon)) %>%
+      summarise_all(.data$. %>% head(1)) %>%
 
       ungroup()
 
@@ -388,7 +390,7 @@ extract_dominant_cluster <- function(sdf,
         st_union() %>%
         st_centroid() %>%
         st_as_sf() %>%
-        dplyr::rename(geometry = x)
+        dplyr::rename(geometry = .data$x)
       sdf_out_specific_centroid$temp_var <- 1 # dummy var so becomes spatial dataframe
 
       for(var in names(sdf_out)){
@@ -848,7 +850,7 @@ extract_locations_after_words <- function(word_loc,
   next_word <- word(text, word_loc+1)
 
   next_word_none <- is.na(next_word)
-  next_word_ignoreword <- next_word %in% c(stopwords::stopwords(language="en"), "exit", "top", "bottom", "scene")
+  next_word_ignoreword <- next_word %in% c(tm::stopwords("en"), "exit", "top", "bottom", "scene")
   next_word_short <- nchar(next_word) < 3
 
   if(!next_word_none & !next_word_ignoreword & !next_word_short){
@@ -896,7 +898,7 @@ extract_locations_after_words <- function(word_loc,
       if(nrow(landmarks_subset) >= 1){
 
         landmarks_subset <- landmarks_subset %>%
-          dplyr::rename(matched_words_correct_spelling = name) %>%
+          dplyr::rename(matched_words_correct_spelling = .data$name) %>%
           dplyr::mutate(exact_match = FALSE,
                         location_type = "landmark")
 
@@ -1245,11 +1247,11 @@ extract_intersections <- function(locations_in_tweet,
             st_union() %>%
             st_centroid() %>%
             st_as_sf() %>%
-            dplyr::rename(geometry = x) %>%
+            dplyr::rename(geometry = .data$x) %>%
             st_coordinates() %>%
             as.data.frame() %>%
-            dplyr::rename(lon = X) %>%
-            dplyr::rename(lat = Y) %>%
+            dplyr::rename(lon = .data$X) %>%
+            dplyr::rename(lat = .data$Y) %>%
             dplyr::mutate(road_correct_spelling_1 = locations_in_tweet_roads_i$matched_words_correct_spelling[1],
                           road_tweet_spelling_1 = locations_in_tweet_roads_i$matched_words_tweet_spelling[1],
                           road_correct_spelling_2 = locations_in_tweet_roads_i$matched_words_correct_spelling[2],
@@ -1357,7 +1359,7 @@ pref_orig_name_with_gen_landmarks <- function(landmark_gazetteer,
   # parallel landmark).
 
   landmark_gazetteer_gs <- merge(landmark_gazetteer,
-                                 landmark_match %>% distinct(matched_words_correct_spelling, .keep_all=T),
+                                 landmark_match %>% distinct(.data$matched_words_correct_spelling, .keep_all=T),
                                  by.x = "name",
                                  by.y = "matched_words_correct_spelling",
                                  all.x = F)
@@ -1415,7 +1417,7 @@ pref_type_with_gen_landmarks <- function(landmark_gazetteer,
   # parallel landmark).
 
   landmark_gazetteer_gs <- merge(landmark_gazetteer,
-                                 landmark_match %>% distinct(matched_words_correct_spelling, .keep_all=T),
+                                 landmark_match %>% distinct(.data$matched_words_correct_spelling, .keep_all=T),
                                  by.x = "name",
                                  by.y = "matched_words_correct_spelling",
                                  all.x = F)
@@ -1588,7 +1590,7 @@ choose_between_multiple_landmarks <- function(df_out,
     roads_in_tweet$id <- 1
     roads_in_tweet <- roads_in_tweet %>%
       group_by(id) %>%
-      dplyr::summarise(geometry = st_union(geometry)) %>%
+      dplyr::summarise(geometry = st_union(.data$geometry)) %>%
       ungroup()
     #roads_in_tweet <- raster::aggregate(roads_in_tweet, by="id")
     df_out_sp$distance_road <- as.numeric(st_distance(roads_in_tweet, df_out_sp))
@@ -1645,7 +1647,7 @@ choose_between_landmark_same_name <- function(df_out,
     #roads_in_tweet <- raster::aggregate(roads_in_tweet, by="id")
     roads_in_tweet <- roads_in_tweet %>%
       group_by(id) %>%
-      dplyr::summarise(geometry = st_union(geometry)) %>%
+      dplyr::summarise(geometry = st_union(.data$geometry)) %>%
       ungroup()
 
     df_out$distance_road_in_tweet <- as.numeric(st_distance(df_out_sp, roads_in_tweet))
@@ -1798,16 +1800,6 @@ find_landmark_similar_name_close_to_road <- function(df_out,
   # 3. If more than one landmark found, check if all close together
   # 4. If the above conditions don't hold, we stay with the original landmarks
 
-  # TODO: This is somewhat doing 2 things now, which we could separate
-  # 1. Now, above description isn't entirely accurate. We take the found landmark
-  #    and if not close to mentioned road, we grab all landmarks with that name
-  #    anywhere. We take the next word in the tweet, and see if that is anywhere
-  #    and we restrict until we can't restrict anymore. We check for a dominant
-  #    cluster then use that.
-  # 2. But, if no dominant cluster, we further restrict to cases where the found
-  #    landmark is the START of the word of the gazetteer names. We check for
-  #    a dominant cluster again.
-
   df_out_sp <- df_out
 
   df_out_sp <- df_out_sp %>%
@@ -1830,7 +1822,7 @@ find_landmark_similar_name_close_to_road <- function(df_out,
     #roads_i <- aggregate(roads_i, by="id")
     roads_i <- roads_i %>%
       group_by(id) %>%
-      dplyr::summarise(geometry = st_union(geometry)) %>%
+      dplyr::summarise(geometry = st_union(.data$geometry)) %>%
       ungroup()
 
     landmark_gazetteer_subset$distance_road <- as.numeric(st_distance(landmark_gazetteer_subset, roads_i, byid=T))
@@ -1847,7 +1839,8 @@ find_landmark_similar_name_close_to_road <- function(df_out,
 
     #### NEW
     if(nrow(landmark_gazetteer_subset) > 0){
-      text_words <- text_i %>% words()
+      #text_words <- text_i %>% words()
+      text_words <- text_i %>% strsplit(split = " ") %>% unlist()
 
       if(direction %in% "next_words"){
         next_word_i <- df_out$word_loc_max[1] + 1
@@ -1969,7 +1962,9 @@ determine_location_from_landmark <- function(df_out,
   df_out <- df_out %>%
     st_as_sf() %>%
     add_latlon_vars_to_sf() %>%
-    dplyr::select(lon, lat, matched_words_correct_spelling, matched_words_tweet_spelling, type, how_determined_landmark, dist_closest_crash_word)
+    dplyr::select("lon", "lat", "matched_words_correct_spelling",
+                  "matched_words_tweet_spelling", "type", "how_determined_landmark",
+                  "dist_closest_crash_word")
 
   return(df_out)
 }
