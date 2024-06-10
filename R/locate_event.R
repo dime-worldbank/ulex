@@ -295,34 +295,34 @@ locate_event <- function(text,
                       junction_words_regex = junction_words_regex) %>%
       bind_rows()
   } else{
-    out_all <- pbmclapply(text,
-                          locate_event_i,
-                          landmark_gazetteer            = landmark_gazetteer,
-                          roads                          = roads,
-                          areas                          = areas,
-                          prepositions_list              = prepositions_list,
-                          prep_check_order               = prep_check_order,
-                          event_words                    = event_words,
-                          junction_words                 = junction_words,
-                          false_positive_phrases         = false_positive_phrases,
-                          type_list                      = type_list,
-                          clost_dist_thresh              = clost_dist_thresh,
-                          fuzzy_match                    = fuzzy_match,
-                          fuzzy_match.min_word_length    = fuzzy_match.min_word_length,
-                          fuzzy_match.dist               = fuzzy_match.dist,
-                          fuzzy_match.ngram_max          = fuzzy_match.ngram_max,
-                          fuzzy_match.first_letters_same = fuzzy_match.first_letters_same,
-                          fuzzy_match.last_letters_same  = fuzzy_match.last_letters_same,
-                          crs_distance                   = crs_distance,
-                          crs_out                        = crs_out,
-                          quiet                          = quiet,
+    out_all <- mclapply(text,
+                        locate_event_i,
+                        landmark_gazetteer            = landmark_gazetteer,
+                        roads                          = roads,
+                        areas                          = areas,
+                        prepositions_list              = prepositions_list,
+                        prep_check_order               = prep_check_order,
+                        event_words                    = event_words,
+                        junction_words                 = junction_words,
+                        false_positive_phrases         = false_positive_phrases,
+                        type_list                      = type_list,
+                        clost_dist_thresh              = clost_dist_thresh,
+                        fuzzy_match                    = fuzzy_match,
+                        fuzzy_match.min_word_length    = fuzzy_match.min_word_length,
+                        fuzzy_match.dist               = fuzzy_match.dist,
+                        fuzzy_match.ngram_max          = fuzzy_match.ngram_max,
+                        fuzzy_match.first_letters_same = fuzzy_match.first_letters_same,
+                        fuzzy_match.last_letters_same  = fuzzy_match.last_letters_same,
+                        crs_distance                   = crs_distance,
+                        crs_out                        = crs_out,
+                        quiet                          = quiet,
 
-                          landmark_list = landmark_list,
-                          roads_list    = roads_list,
-                          areas_list    = areas_list,
-                          prepositions_all = prepositions_all,
-                          junction_words_regex = junction_words_regex,
-                          mc.cores = mc_cores) %>%
+                        landmark_list = landmark_list,
+                        roads_list    = roads_list,
+                        areas_list    = areas_list,
+                        prepositions_all = prepositions_all,
+                        junction_words_regex = junction_words_regex,
+                        mc.cores = mc_cores) %>%
       bind_rows()
   }
 
@@ -514,9 +514,9 @@ locate_event_i <- function(text_i,
                            phrase_locate,
                            text_i_no_stopwords) %>%
       bind_rows %>%
-      dplyr::filter(!(word_loc_max %in% c(-Inf, Inf))) #TODO Check why getting Inf using `phrase_locate()` function
+      dplyr::filter(!(.data$word_loc_max %in% c(-Inf, Inf)))
 
-    prep_locs <- prep_locs_df$word_loc_max %>% unique # vector of locations of prepositions in tweet
+    prep_locs <- prep_locs_df$word_loc_max %>% unique() # vector of locations of prepositions in tweet
 
   }
 
@@ -679,7 +679,7 @@ locate_event_i <- function(text_i,
       ## Aggregate roads so one row; makes distance calculations easier
       road_match_agg_sp <- road_match_sp %>%
         mutate(id = 1) %>%
-        group_by(id) %>%
+        group_by(.data$id) %>%
         dplyr::summarise(geometry = st_union(geometry)) %>%
         ungroup()
 
@@ -698,7 +698,7 @@ locate_event_i <- function(text_i,
 
       area_match_agg_sp <- area_match_agg_sp %>%
         mutate(id = 1) %>%
-        group_by(id) %>%
+        group_by(.data$id) %>%
         dplyr::summarise(geometry = st_union(geometry)) %>%
         ungroup()
 
@@ -1151,7 +1151,7 @@ locate_event_i <- function(text_i,
       df_out$id <- 1
 
       df_out <- df_out %>%
-        group_by(id) %>%
+        group_by(.data$id) %>%
         summarise_all(function(x) x %>% unique %>% paste(collapse = ";")) %>%
         dplyr::rename(lon_all = .data$lon,
                       lat_all = .data$lat) %>%
@@ -1206,8 +1206,8 @@ locate_event_i <- function(text_i,
 
           df_out <- df_out_candidate %>%
             dplyr::mutate(id = 1) %>%
-            group_by(id) %>%
-            dplyr::summarise(geometry = st_union(geometry)) %>%
+            group_by(.data$id) %>%
+            dplyr::summarise(geometry = st_union(.data$geometry)) %>%
             ungroup()
 
           #df_out_candidate$id <- 1
@@ -1238,8 +1238,8 @@ locate_event_i <- function(text_i,
           # Use road if df_out is blank
           df_out <- roads_final_sp %>%
             dplyr::mutate(id = 1) %>%
-            group_by(id) %>%
-            dplyr::summarise(geometry = st_union(geometry)) %>%
+            group_by(.data$id) %>%
+            dplyr::summarise(geometry = st_union(.data$geometry)) %>%
             ungroup()
 
           #roads_final_sp$id <- 1
@@ -1266,8 +1266,8 @@ locate_event_i <- function(text_i,
         # Use road if df_out is blank
         df_out <- areas_final_sp %>%
           dplyr::mutate(id = 1) %>%
-          group_by(id) %>%
-          dplyr::summarise(geometry = st_union(geometry)) %>%
+          group_by(.data$id) %>%
+          dplyr::summarise(geometry = st_union(.data$geometry)) %>%
           ungroup()
 
         #areas_final_sp$id <- 1
@@ -1300,7 +1300,7 @@ locate_event_i <- function(text_i,
 
     df_out$landmarks_all_location <- landmark_gazetteer_orig[landmark_gazetteer_orig$name %in% locations_in_tweet_original$matched_words_tweet_spelling[locations_in_tweet_original$location_type %in% "landmark"],] %>%
       as.data.frame() %>%
-      dplyr::mutate(location = paste0(name,",",lat,",",lon)) %>%
+      dplyr::mutate(location = paste0(.data$name,",",.data$lat,",",.data$lon)) %>%
       pull(location) %>%
       unique %>%
       paste(collapse=";")

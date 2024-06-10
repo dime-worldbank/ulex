@@ -210,7 +210,7 @@ augment_gazetteer <- function(landmarks,
     n_gram_df <- df %>%
       dplyr::pull(.data$name) %>%
       tokens(remove_symbols = F, remove_punct = F) %>%
-      tokens_ngrams(n=2:3, concatenator = " ") %>% # TODO: parameterize 2:3
+      tokens_ngrams(n=2:3, concatenator = " ") %>%
       as.list() %>%
       lapply(function(x) x %>% t %>% as.data.frame()) %>%
       bind_rows() %>%
@@ -275,7 +275,7 @@ augment_gazetteer <- function(landmarks,
   landmarks_grams <- bind_rows(n_gram_df,
                                skip_gram_df) %>%
     unique() %>%
-    group_by(name) %>%
+    group_by(.data$name) %>%
     mutate(name_N = n()) %>%
     ungroup()
 

@@ -6,12 +6,19 @@
 <!-- badges: start -->
 
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ulex)](https://cran.r-project.org/package=ulex)
-[![activity](https://img.shields.io/github/commit-activity/m/worldbank/ulex)](https://github.com/worldbank/ulex/graphs/commit-activity)
+[![activity](https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex)](https://github.com/dime-worldbank/ulex/graphs/commit-activity)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
+[![R-CMD-check](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-## Overview
+- [Overview](#overview)
+- [Installation](#installation)
+- [Main functions](#main-functions)
+- [Quick start](#quick-start)
+- [Additional information on main functions](#addn-info)
+
+## Overview <a name="overview"></a>
 
 Text often contains references to the locations of events where we want
 to extract the location of the event. For example, consider this example
@@ -38,7 +45,7 @@ traffic crashes from reports of crashes via Twitter, specifically in the
 context of Nairobi, Kenya using the Twitter feed
 [@Ma3Route](https://twitter.com/Ma3Route?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor).
 
-## Installation
+## Installation <a name="installation"></a>
 
 You can install the development version of `ulex` from GitHub with:
 
@@ -47,7 +54,7 @@ You can install the development version of `ulex` from GitHub with:
 devtools::install_github("worldbank/rsocialwatcher")
 ```
 
-## Main functions
+## Main functions <a name="main-functions"></a>
 
 The package contains two main functions:
 
@@ -58,19 +65,23 @@ The package contains two main functions:
   [OpenStreetMaps](https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html),
   [Geonames](https://github.com/ropensci/geonames) or [Google
   Maps](https://www.rdocumentation.org/packages/googleway/versions/2.7.1/topics/google_places).
+  For more information on the function, see [here](#addn-aug).
 
 - **locate_event:** Takes text as input and returns the location of the
   relevant event. Key inputs include the text to geoparse, a gazetteer
   of landmarks, spatial files of roads and areas (e.g., neighborhoods)
-  and a list of event words.
+  and a list of event words. For more information on the function, see
+  [here](#addn-loc).
 
-## Quick Start
+## Quick Start <a name="quick-start"></a>
 
 - [Setup](#setup)
 - [Create location datasets](#create-loc-data)
-- [Dataset of Wards](#create-areas)
-- [Dataset of roads](#create-roads)
-- [Dataset of landmarks (landmark gazetteer)](#create-landmarks)
+  - [Dataset of Wards](#create-areas)
+  - [Dataset of roads](#create-roads)
+  - [Dataset of landmarks (landmark gazetteer)](#create-landmarks)
+- [Augment gazetteer](#aug-gazettee)
+- [Location events](#loc-events)
 
 ### Setup <a name="setup"></a>
 
@@ -288,9 +299,9 @@ ggplot() +
 
 <img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
-## Additional information for main functions
+## Additional information on main functions <a name="addn-info"></a>
 
-### augment_gazetteer
+### `augment_gazetteer()` <a name="addn-aug"></a>
 
 The `augment_gazetteer` function adds additional landmarks to account
 for different ways of saying the same landmark name. For example, raw
@@ -315,7 +326,11 @@ Key components of the function include:
     roads). Roads and areas are dealt with separately; this function
     focuses on cleaning a gazetteer of specific points/landmarks.
 
-### locate_event
+**Pages S4 to S6 in the supplementary information file
+[here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244317#sec005)
+provides further details on the augment gazetteer algorithm**
+
+### `locate_event()` <a name="addn-loc"></a>
 
 The `locate_event` function extracts landmarks from text and determines
 the unique location of events from the text. The algorithm works in two
@@ -381,3 +396,7 @@ in the following order:
 6.  If a landmark is not found, but a road or area are found, the road
     or area are returned. If a road and area are mentioned, the
     intersection of the road and area is returned.
+
+**Pages S15 to S19 in the supplementary information file
+[here](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244317#sec005)
+provides further details on the locate event algorithm**

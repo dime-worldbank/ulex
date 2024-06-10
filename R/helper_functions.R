@@ -230,14 +230,14 @@ extract_dominant_cluster_all <- function(landmarks,
       dplyr::filter(.data$general_specific %in% "general")
     landmarks_gs_df_s <- landmarks_gs_df %>%
       dplyr::filter(.data$general_specific %in% "specific") %>%
-      group_by(name) %>%
+      group_by(.data$name) %>%
 
       # ideally would do summarise then summarise_at, but can't. So mutate, then
       # take the first value in each group
       mutate_at(vars(-"lat", -"lon", -"name"), . %>% str_split(";") %>% unlist %>% unique %>% paste(collapse = ";")) %>%
       dplyr::mutate(lat = mean(.data$lat),
                     lon = mean(.data$lon)) %>%
-      summarise_all(.data$. %>% head(1)) %>%
+      summarise_all(. %>% head(1)) %>%
 
       ungroup()
 
@@ -438,7 +438,7 @@ restrict_landmarks_by_location <- function(landmark_match,
   ## Spatiall prep sdf
   sdf <- sdf %>%
     dplyr::mutate(id = 1) %>%
-    group_by(id) %>%
+    group_by(.data$id) %>%
     dplyr::summarise(geometry = st_union(.data$geometry)) %>%
     ungroup()
 
@@ -472,7 +472,7 @@ restrict_gaz_tier1_landmarks <- function(landmark_match,
   # finds where overlap.
 
   landmark_gazetteer_gs <- merge(landmark_gazetteer,
-                                 landmark_match %>% distinct(matched_words_correct_spelling, .keep_all=T),
+                                 landmark_match %>% distinct(.data$matched_words_correct_spelling, .keep_all=T),
                                  by.x = "name",
                                  by.y = "matched_words_correct_spelling",
                                  all.x = F)
@@ -989,7 +989,7 @@ remove_general_landmarks <- function(landmark_match,
   # (2) Gazeteer
 
   landmark_gazetteer_gs <- merge(landmark_gazetteer,
-                                 landmark_match %>% distinct(matched_words_correct_spelling, .keep_all=T),
+                                 landmark_match %>% distinct(.data$matched_words_correct_spelling, .keep_all=T),
                                  by.x = "name",
                                  by.y = "matched_words_correct_spelling",
                                  all.x = F)
@@ -1312,7 +1312,7 @@ pref_specific <- function(landmark_gazetteer,
   # landmark
 
   landmark_gazetteer_gs <- merge(landmark_gazetteer,
-                                 landmark_match %>% distinct(matched_words_correct_spelling, .keep_all=T),
+                                 landmark_match %>% distinct(.data$matched_words_correct_spelling, .keep_all=T),
                                  by.x = "name",
                                  by.y = "matched_words_correct_spelling",
                                  all.x = F)
@@ -1589,7 +1589,7 @@ choose_between_multiple_landmarks <- function(df_out,
     roads_in_tweet <- roads[roads$name %in% roads_final$matched_words_correct_spelling,]
     roads_in_tweet$id <- 1
     roads_in_tweet <- roads_in_tweet %>%
-      group_by(id) %>%
+      group_by(.data$id) %>%
       dplyr::summarise(geometry = st_union(.data$geometry)) %>%
       ungroup()
     #roads_in_tweet <- raster::aggregate(roads_in_tweet, by="id")
@@ -1646,7 +1646,7 @@ choose_between_landmark_same_name <- function(df_out,
     roads_in_tweet$id <- 1
     #roads_in_tweet <- raster::aggregate(roads_in_tweet, by="id")
     roads_in_tweet <- roads_in_tweet %>%
-      group_by(id) %>%
+      group_by(.data$id) %>%
       dplyr::summarise(geometry = st_union(.data$geometry)) %>%
       ungroup()
 
@@ -1821,7 +1821,7 @@ find_landmark_similar_name_close_to_road <- function(df_out,
     roads_i$id <- 1
     #roads_i <- aggregate(roads_i, by="id")
     roads_i <- roads_i %>%
-      group_by(id) %>%
+      group_by(.data$id) %>%
       dplyr::summarise(geometry = st_union(.data$geometry)) %>%
       ungroup()
 
