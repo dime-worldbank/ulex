@@ -33,9 +33,9 @@ Text often contains references to the locations of events where we want to extra
 
 > crash occurred near garden city on thika road on your way towards roysambu.
 
-The tweet contains three location references: (1) garden city, (2) thika road and (3) roysambu, where 'garden city' is the name of multiple locations. Here, we are interested in extracting the location of the garden city location on Thika road that represents the crash site.
+The tweet contains three location references: (1) garden city, (2) Thika road and (3) roysambu, where 'garden city' is the name of multiple locations. Here, we are interested in extracting the location of the garden city location on Thika road that represents the crash site.
 
-__The Unique Location Extractor (ULEx) geoparses text to extract the unique location of events.__ The algorithm takes advantage of contextual information contained within text (references to roads or administrate areas, such as neighborhoods) and determines which location references do not reference the event of interest and should be ignored. Moreover, the algorithm accounts for differences in spelling between how a user writes a location and how the location is captured in a dictionary of locations; users may use shorter, informal names while a location dictionary may just contain formal names. For example, a user may write _"crash near mathare center"_, while a landmark dictionary contains _"mathare social justice centre"_.
+__The Unique Location Extractor (ULEx) geoparses text to extract the unique location of events.__ The algorithm first determines which location references refer to the event of interest and which location references should be ignored. The algorithm them determines the location of the event by checking text against dictionaries of landmarks, roads, and areas (such as neighborhoods). Moreover, the algorithm accounts for differences in spelling between how a user writes a location and how the location is captured in a dictionary of locations; users may use short, informal names while a location dictionary may contain formal names. For example, a user may write _"crash near mathare center"_, while a landmark dictionary contains _"mathare social justice centre"_.
 
 This package was originally developed to extract locations of road traffic crashes from reports of crashes via Twitter, specifically in the context of Nairobi, Kenya using the Twitter feed [@Ma3Route](https://twitter.com/Ma3Route?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor). For more information, see our article here:
 
@@ -239,21 +239,21 @@ ggplot() +
 The output of `locate_event()` has the following variables:
 
 * __text:__ Original text to geocode.
-* __matched_words_correct_spelling:__ Names of locations used to geocode event, as names appear in landmark, roads, and area datasets.    
-* __matched_words_text_spelling:__ Names of locations used to geocode event, as name appears in text.      
+* __matched_words_correct_spelling:__ Names of locations used to geocode the event, as names appear in landmark, roads, and area datasets    
+* __matched_words_text_spelling:__ Names of locations used to geocode event, as names appear in text.      
 * __dist_closest_event_word:__ Distance of landmark to event word (ie, number of words between event word and location word).           
 * __type:__ Type of location (e.g., landmark, intersection).                            
 * __how_determined_location:__ Information on how location was determined.           
 * __dist_mentioned_road_m:__ Distance (meters) of event location to mentioned road.             
 * __lon_all:__ All landmark locations found in text (longitude).                           
 * __lat_all:__ All landmark locations found in text (latitude).                           
-* __landmarks_all_text_spelling:__ Names of all landmarks found, as name appears in text.      
-* __landmarks_all_correct_spelling:__ Names of all landmarks found, as name appears in landmark gazetteer.   
+* __landmarks_all_text_spelling:__ Names of all landmarks found, as names appear in text.      
+* __landmarks_all_correct_spelling:__ Names of all landmarks found, as names appear in landmark gazetteer.   
 * __landmarks_all_location:__ Names of landmarks and locations (name,latitude,longitude).            
-* __roads_all_text_spelling:__ Names of roads in text, as name appears in text.          
-* __roads_all_correct_spelling:__ Name of roads in text, as name appears in road dataset.        
-* __intersection_all_text_spelling:__ Name of intersection (e.g., pairs of roads that make intersection), as name appears in text.   
-* __intersection_all_correct_spelling:__ Name of intersection (e.g., pairs of roads that make intersection), as name appears road dataset.
+* __roads_all_text_spelling:__ Names of roads in text, as names appear in text.          
+* __roads_all_correct_spelling:__ Name of roads in text, as names appear in road dataset.        
+* __intersection_all_text_spelling:__ Name of intersection (e.g., pairs of roads that make intersection), as names appear in text.   
+* __intersection_all_correct_spelling:__ Name of intersection (e.g., pairs of roads that make intersection), as names appear road dataset.
 * __intersection_all_location:__ Name and locations of intersections (name,latitude,longitude).         
 * __geometry:__ Geometry of event location.
 
