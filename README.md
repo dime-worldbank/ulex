@@ -27,22 +27,22 @@ interested in determining the location of the crash:
 > crash occurred near garden city on thika road on your way towards
 > roysambu.
 
-The tweet contains three location references: (1) garden city, (2) thika
+The tweet contains three location references: (1) garden city, (2) Thika
 road and (3) roysambu, where ‘garden city’ is the name of multiple
 locations. Here, we are interested in extracting the location of the
 garden city location on Thika road that represents the crash site.
 
 **The Unique Location Extractor (ULEx) geoparses text to extract the
-unique location of events.** The algorithm takes advantage of contextual
-information contained within text (references to roads or administrate
-areas, such as neighborhoods) and determines which location references
-do not reference the event of interest and should be ignored. Moreover,
-the algorithm accounts for differences in spelling between how a user
-writes a location and how the location is captured in a dictionary of
-locations; users may use shorter, informal names while a location
-dictionary may just contain formal names. For example, a user may write
-*“crash near mathare center”*, while a landmark dictionary contains
-*“mathare social justice centre”*.
+unique location of events.** The algorithm first determines which
+location references refer to the event of interest and which location
+references should be ignored. The algorithm them determines the location
+of the event by checking text against dictionaries of landmarks, roads,
+and areas (such as neighborhoods). Moreover, the algorithm accounts for
+differences in spelling between how a user writes a location and how the
+location is captured in a dictionary of locations; users may use short,
+informal names while a location dictionary may contain formal names. For
+example, a user may write *“crash near mathare center”*, while a
+landmark dictionary contains *“mathare social justice centre”*.
 
 This package was originally developed to extract locations of road
 traffic crashes from reports of crashes via Twitter, specifically in the
@@ -342,9 +342,9 @@ The output of `locate_event()` has the following variables:
 
 - **text:** Original text to geocode.
 - **matched_words_correct_spelling:** Names of locations used to geocode
-  event, as names appear in landmark, roads, and area datasets.  
+  the event, as names appear in landmark, roads, and area datasets  
 - **matched_words_text_spelling:** Names of locations used to geocode
-  event, as name appears in text.  
+  event, as names appear in text.  
 - **dist_closest_event_word:** Distance of landmark to event word (ie,
   number of words between event word and location word).  
 - **type:** Type of location (e.g., landmark, intersection).  
@@ -354,20 +354,20 @@ The output of `locate_event()` has the following variables:
   mentioned road.  
 - **lon_all:** All landmark locations found in text (longitude).  
 - **lat_all:** All landmark locations found in text (latitude).  
-- **landmarks_all_text_spelling:** Names of all landmarks found, as name
-  appears in text.  
+- **landmarks_all_text_spelling:** Names of all landmarks found, as
+  names appear in text.  
 - **landmarks_all_correct_spelling:** Names of all landmarks found, as
-  name appears in landmark gazetteer.  
+  names appear in landmark gazetteer.  
 - **landmarks_all_location:** Names of landmarks and locations
   (name,latitude,longitude).  
-- **roads_all_text_spelling:** Names of roads in text, as name appears
+- **roads_all_text_spelling:** Names of roads in text, as names appear
   in text.  
-- **roads_all_correct_spelling:** Name of roads in text, as name appears
+- **roads_all_correct_spelling:** Name of roads in text, as names appear
   in road dataset.  
 - **intersection_all_text_spelling:** Name of intersection (e.g., pairs
-  of roads that make intersection), as name appears in text.  
+  of roads that make intersection), as names appear in text.  
 - **intersection_all_correct_spelling:** Name of intersection (e.g.,
-  pairs of roads that make intersection), as name appears road dataset.
+  pairs of roads that make intersection), as names appear road dataset.
 - **intersection_all_location:** Name and locations of intersections
   (name,latitude,longitude).  
 - **geometry:** Geometry of event location.
