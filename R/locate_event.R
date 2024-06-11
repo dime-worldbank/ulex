@@ -106,8 +106,7 @@
 #'                            landmark_gazetteer = landmarks_aug_sf,
 #'                            areas = nbo_sf,
 #'                            roads = roads_sf,
-#'                            event_words = c("accident", "crash", "collision"),
-#'                            quiet = F)
+#'                            event_words = c("accident", "crash", "collision"))
 #'}
 #' @export
 #'
