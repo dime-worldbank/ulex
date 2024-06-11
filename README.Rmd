@@ -75,9 +75,10 @@ The package contains two functions:
 library(ulex)
 
 ## Load other packages, such as those for creating location dictionaries
+library(dplyr)
 library(geodata)
 library(osmdata)
-library(dplyr)
+library(basemaps)
 library(sf)
 library(ggplot2)
 library(stringr)
@@ -219,15 +220,19 @@ crashes_sf <- locate_event(text = texts,
 ```
 
 ```{r, message = F, warning=F}
+ext <- crashes_sf %>%
+  st_buffer(dist = 500) %>%
+  st_bbox()
+
 ggplot() +
   geom_sf() +
-  geom_sf(data = nbo_sf,
-          fill = "gray",
-          color ="gray") +
-  geom_sf(data = crashes_sf,
+  basemap_gglayer(ext) +
+  geom_sf(data = crashes_sf %>%
+            st_transform(3857),
           pch = 21,
           color = "black",
           fill = "red") +
+  scale_fill_identity() + 
   theme_void()
 ```
 

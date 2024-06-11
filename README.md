@@ -101,9 +101,10 @@ The package contains two functions:
 library(ulex)
 
 ## Load other packages, such as those for creating location dictionaries
+library(dplyr)
 library(geodata)
 library(osmdata)
-library(dplyr)
+library(basemaps)
 library(sf)
 library(ggplot2)
 library(stringr)
@@ -271,9 +272,9 @@ entries from about 11,000 to 50,000.
 landmarks_aug_sf <- augment_gazetteer(landmarks_sf)
 
 print(nrow(landmarks_sf))
-#> [1] 11165
+#> [1] 11164
 print(nrow(landmarks_aug_sf))
-#> [1] 49994
+#> [1] 50022
 
 head(landmarks_aug_sf)
 #> Simple feature collection with 6 features and 3 fields
@@ -303,8 +304,7 @@ We geolocate the location of crashes contained in five texts.
 
 ``` r
 texts <- c("crash at garden city",
-            "crash occurred near garden city on thika road on your way towards 
-            roysambu",
+            "crash occurred near garden city on thika road towards roysambu",
             "crash at intersection of juja road and outer ring rd",
             "crash occured near roysambu on thika rd",
             "crash near mathare centre along juja road")
@@ -318,16 +318,22 @@ crashes_sf <- locate_event(text = texts,
 ```
 
 ``` r
+ext <- crashes_sf %>%
+  st_buffer(dist = 500) %>%
+  st_bbox()
+
 ggplot() +
   geom_sf() +
-  geom_sf(data = nbo_sf,
-          fill = "gray",
-          color ="gray") +
-  geom_sf(data = crashes_sf,
+  basemap_gglayer(ext) +
+  geom_sf(data = crashes_sf %>%
+            st_transform(3857),
           pch = 21,
           color = "black",
           fill = "red") +
+  scale_fill_identity() + 
   theme_void()
+#> Loading basemap 'voyager' from map service 'carto'...
+#> Using geom_raster() with maxpixels = 272936.
 ```
 
 <img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
@@ -373,12 +379,12 @@ head(crashes_sf)
 #> Dimension:     XY
 #> Bounding box:  xmin: 36.86339 ymin: -1.263214 xmax: 36.89176 ymax: -1.218554
 #> Geodetic CRS:  WGS 84
-#>                                                                         text
-#> 1                                                       crash at garden city
-#> 2 crash occurred near garden city on thika road on your way towards roysambu
-#> 3                       crash at intersection of juja road and outer ring rd
-#> 4                                    crash occured near roysambu on thika rd
-#> 5                                  crash near mathare centre along juja road
+#>                                                             text
+#> 1                                           crash at garden city
+#> 2 crash occurred near garden city on thika road towards roysambu
+#> 3           crash at intersection of juja road and outer ring rd
+#> 4                        crash occured near roysambu on thika rd
+#> 5                      crash near mathare centre along juja road
 #>   matched_words_correct_spelling matched_words_text_spelling
 #> 1                    garden city                 garden city
 #> 2                    garden city                 garden city
@@ -404,17 +410,17 @@ head(crashes_sf)
 #> 4                    NA
 #> 5             5.1565383
 #>                                                                                                             lon_all
-#> 1 36.8780867;36.8783882;36.8788693;36.8779701;36.8784728;36.8783717;36.8787449;36.877926;36.878982133789;36.8790582
-#> 2                                                            36.8776376;36.8773468;36.8774006;36.8780562;36.8784865
+#> 1 36.8783717;36.8780867;36.8787449;36.8783882;36.877926;36.8779701;36.8790582;36.8788693;36.8784728;36.878982133789
+#> 2                                                            36.8776376;36.8780562;36.8773468;36.8774006;36.8784865
 #> 3                                                                                                  36.8787944172118
-#> 4                                                             36.892742;36.8910567;36.8909309;36.8914926;36.8925596
-#> 5                                                            36.8657684;36.8637369;36.8643478;36.8631133;36.8599741
+#> 4                                                             36.8914926;36.8910567;36.8909309;36.8925596;36.892742
+#> 5                                                            36.8657684;36.8643478;36.8637369;36.8599741;36.8631133
 #>                                                                                                    lat_all
-#> 1 -1.2320662;-1.2330105;-1.2329316;-1.2323486;-1.2332295;-1.2325403;-1.232074;-1.23139664524347;-1.2322988
-#> 2                                                       -1.2314164;-1.23165;-1.231608;-1.231087;-1.2307509
+#> 1 -1.2325403;-1.2320662;-1.232074;-1.2330105;-1.2323486;-1.2322988;-1.2329316;-1.2332295;-1.23139664524347
+#> 2                                                       -1.2314164;-1.231087;-1.23165;-1.231608;-1.2307509
 #> 3                                                                                        -1.26230037028693
-#> 4                                                   -1.2185699;-1.2204266;-1.2179853;-1.2175606;-1.2182267
-#> 5                                                    -1.2625076;-1.2630666;-1.262893;-1.2632442;-1.2643594
+#> 4                                                   -1.2175606;-1.2204266;-1.2179853;-1.2182267;-1.2185699
+#> 5                                                    -1.2625076;-1.262893;-1.2630666;-1.2643594;-1.2632442
 #>   landmarks_all_text_spelling landmarks_all_correct_spelling
 #> 1                 garden city                    garden city
 #> 2        garden city;roysambu           garden city;roysambu
