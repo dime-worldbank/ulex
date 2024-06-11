@@ -23,9 +23,9 @@ knitr::opts_chunk$set(
 
 * [Overview](#overview)
 * [Installation](#installation)
-* [Main functions](#main-functions)
+* [Functions](#main-functions)
 * [Quick start](#quick-start)
-* [Additional information on main functions](#addn-info)
+* [Additional information on functions](#addn-info)
 
 ## Overview <a name="overview"></a>
 
@@ -50,9 +50,9 @@ You can install the development version of `ulex` from GitHub with:
 devtools::install_github("dime-worldbank/ulex")
 ```
 
-## Main functions <a name="main-functions"></a>
+## Functions <a name="main-functions"></a>
 
-The package contains two main functions:
+The package contains two functions:
 
 * __augment_gazetteer:__ The backbone of locating events is looking up location references in a gazetteer, or geographic dictionary. The `augment_gazetteer` facilitates cleaning a gazetteer that may have been constructed from sources such as [OpenStreetMaps](https://cran.r-project.org/web/packages/osmdata/vignettes/osmdata.html), [Geonames](https://github.com/ropensci/geonames) or [Google Maps](https://www.rdocumentation.org/packages/googleway/versions/2.7.1/topics/google_places). For more information on the function, see [here](#addn-aug).
 
@@ -205,8 +205,7 @@ We geolocate the location of crashes contained in five texts.
 
 ```{r, message = F, warning=F}
 texts <- c("crash at garden city",
-            "crash occurred near garden city on thika road on your way towards 
-            roysambu",
+            "crash occurred near garden city on thika road towards roysambu",
             "crash at intersection of juja road and outer ring rd",
             "crash occured near roysambu on thika rd",
             "crash near mathare centre along juja road")
@@ -257,7 +256,7 @@ The output of `locate_event()` has the following variables:
 head(crashes_sf)
 ```
 
-## Additional information on main functions <a name="addn-info"></a>
+## Additional information on functions <a name="addn-info"></a>
 
 ### `augment_gazetteer()` <a name="addn-aug"></a>
 

@@ -13,9 +13,9 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 
 - [Overview](#overview)
 - [Installation](#installation)
-- [Main functions](#main-functions)
+- [Functions](#main-functions)
 - [Quick start](#quick-start)
-- [Additional information on main functions](#addn-info)
+- [Additional information on functions](#addn-info)
 
 ## Overview <a name="overview"></a>
 
@@ -65,9 +65,9 @@ You can install the development version of `ulex` from GitHub with:
 devtools::install_github("dime-worldbank/ulex")
 ```
 
-## Main functions <a name="main-functions"></a>
+## Functions <a name="main-functions"></a>
 
-The package contains two main functions:
+The package contains two functions:
 
 - **augment_gazetteer:** The backbone of locating events is looking up
   location references in a gazetteer, or geographic dictionary. The
@@ -271,9 +271,9 @@ entries from about 11,000 to 50,000.
 landmarks_aug_sf <- augment_gazetteer(landmarks_sf)
 
 print(nrow(landmarks_sf))
-#> [1] 11168
+#> [1] 11165
 print(nrow(landmarks_aug_sf))
-#> [1] 50006
+#> [1] 49994
 
 head(landmarks_aug_sf)
 #> Simple feature collection with 6 features and 3 fields
@@ -404,16 +404,16 @@ head(crashes_sf)
 #> 4                    NA
 #> 5             5.1565383
 #>                                                                                                             lon_all
-#> 1 36.8788693;36.8783882;36.8783717;36.8779701;36.8780867;36.877926;36.878982133789;36.8787449;36.8784728;36.8790582
-#> 2                                                            36.8776376;36.8773468;36.8774006;36.8784865;36.8780562
+#> 1 36.8780867;36.8783882;36.8788693;36.8779701;36.8784728;36.8783717;36.8787449;36.877926;36.878982133789;36.8790582
+#> 2                                                            36.8776376;36.8773468;36.8774006;36.8780562;36.8784865
 #> 3                                                                                                  36.8787944172118
-#> 4                                                             36.892742;36.8909309;36.8910567;36.8914926;36.8925596
+#> 4                                                             36.892742;36.8910567;36.8909309;36.8914926;36.8925596
 #> 5                                                            36.8657684;36.8637369;36.8643478;36.8631133;36.8599741
 #>                                                                                                    lat_all
-#> 1 -1.2329316;-1.2330105;-1.2325403;-1.2323486;-1.2320662;-1.232074;-1.23139664524347;-1.2332295;-1.2322988
-#> 2                                                       -1.2314164;-1.23165;-1.231608;-1.2307509;-1.231087
+#> 1 -1.2320662;-1.2330105;-1.2329316;-1.2323486;-1.2332295;-1.2325403;-1.232074;-1.23139664524347;-1.2322988
+#> 2                                                       -1.2314164;-1.23165;-1.231608;-1.231087;-1.2307509
 #> 3                                                                                        -1.26230037028693
-#> 4                                                   -1.2185699;-1.2179853;-1.2204266;-1.2175606;-1.2182267
+#> 4                                                   -1.2185699;-1.2204266;-1.2179853;-1.2175606;-1.2182267
 #> 5                                                    -1.2625076;-1.2630666;-1.262893;-1.2632442;-1.2643594
 #>   landmarks_all_text_spelling landmarks_all_correct_spelling
 #> 1                 garden city                    garden city
@@ -453,7 +453,7 @@ head(crashes_sf)
 #> 5 POINT (36.86339 -1.263214)
 ```
 
-## Additional information on main functions <a name="addn-info"></a>
+## Additional information on functions <a name="addn-info"></a>
 
 ### `augment_gazetteer()` <a name="addn-aug"></a>
 

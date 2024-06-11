@@ -1,10 +1,10 @@
 Package: ulex
-Title: Unique Location Extrator
+Title: Unique Location Extractor
 Version: 0.1.0
 Authors@R: 
     person("Robert", "Marty", , "rmarty@worldbank.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3164-3813"))
-Description: Extracts coordiantes of an event location from text (i.e., geoparses text) based on datasets of landmarks, roads, and areas. Only returns the location of an event of interest and ignores other location references; for example, if determining the location of a road traffic crash from the text "crash near [location 1] heading towards [location 2]", only the coordinates of "location 1" would be returned.
+Description: Extracts coordinates of an event location from text based on dictionaries of landmarks, roads, and areas. Only returns the location of an event of interest and ignores other location references; for example, if determining the location of a road traffic crash from the text "crash near [location 1] heading towards [location 2]", only the coordinates of "location 1" would be returned. Moreover, accounts for differences in spelling between how a user references a location and how a location is captured in location dictionaries. For more information on the algorithm, see Milusheva et al. (2021) <doi:10.1371/journal.pone.0244317>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
