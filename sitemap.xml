@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>https://dime-worldbank.github.io/ulex/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE-text.html</loc>
+    <loc>https://dime-worldbank.github.io/ulex/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>https://dime-worldbank.github.io/ulex/authors.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>https://dime-worldbank.github.io/ulex/index.html</loc>
   </url>
   <url>
-    <loc>/reference/augment_gazetteer.html</loc>
+    <loc>https://dime-worldbank.github.io/ulex/reference/augment_gazetteer.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>https://dime-worldbank.github.io/ulex/reference/index.html</loc>
   </url>
   <url>
-    <loc>/reference/locate_event.html</loc>
+    <loc>https://dime-worldbank.github.io/ulex/reference/locate_event.html</loc>
   </url>
 </urlset>
