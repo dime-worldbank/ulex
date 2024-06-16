@@ -208,8 +208,7 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dime-worldbank.github.io/ulex/">ulex</a></span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dime-worldbank.github.io/ulex/">ulex</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">lm_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"white house"</span>,</span></span>
 <span class="r-in"><span>                             <span class="st">"the world bank group"</span>,</span></span>
@@ -226,28 +225,6 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">lm_aug_sf</span> <span class="op">&lt;-</span> <span class="fu">augment_gazetteer</span><span class="op">(</span><span class="va">lm_sf</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> successfully initialized (spaCy Version: 3.7.2, language model: en_core_web_sm)</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lm_aug_sf</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Simple feature collection with 6 features and 3 fields</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Geometry type: POINT</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dimension:     XY</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Bounding box:  xmin: -77.0508 ymin: 38.89778 xmax: -77.03639 ymax: 38.9007</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Geodetic CRS:  WGS 84</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                     name     type                    name_original</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            white house building                      white house</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5             world bank building             the world bank group</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6             bank group building             the world bank group</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8       world bank group building             the world bank group</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10     george washington building the george washington university</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11 washington university building the george washington university</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                      geometry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  POINT (-77.03639 38.89778)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  POINT (-77.04275 38.89935)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  POINT (-77.04275 38.89935)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8  POINT (-77.04275 38.89935)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10   POINT (-77.0508 38.9007)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11   POINT (-77.0508 38.9007)</span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
