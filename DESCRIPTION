@@ -32,3 +32,4 @@ Imports:
   spacyr,
   utils
 URL: https://dime-worldbank.github.io/ulex/
+BugReports: https://github.com/dime-worldbank/ulex/issues
