@@ -9,6 +9,7 @@
 [![activity](https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex)](https://github.com/dime-worldbank/ulex/graphs/commit-activity)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
+[![R-CMD-check](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 - [Overview](#overview)
@@ -57,6 +58,12 @@ For more information, see our article here:
 > https://doi.org/10.1371/journal.pone.0244317](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244317)
 
 ## Installation <a name="installation"></a>
+
+The package can be installed via CRAN.
+
+``` r
+install.packages("ulex")
+```
 
 You can install the development version of `ulex` from GitHub with:
 

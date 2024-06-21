@@ -36,6 +36,8 @@
 #' @examples
 #' \donttest{
 #' library(ulex)
+#' library(spacyr)
+#' spacy_install()
 #'
 #' lm_sf <- data.frame(name = c("white house",
 #'                              "the world bank group",
@@ -51,8 +53,6 @@
 #'          crs = 4326)
 #'
 #' lm_aug_sf <- augment_gazetteer(lm_sf)
-#'
-#' head(lm_aug_sf)
 #' }
 #' @export
 

@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ulex)](https://cran.r-project.org/package=ulex)
 [![activity](https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex)](https://github.com/dime-worldbank/ulex/graphs/commit-activity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit)
+[![R-CMD-check](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 * [Overview](#overview)
@@ -42,6 +43,12 @@ This package was originally developed to extract locations of road traffic crash
 > [Milusheva S, Marty R, Bedoya G, Williams S, Resor E, Legovini A (2021) Applying machine learning and geolocation techniques to social media data (Twitter) to develop a resource for urban planning. PLoS ONE 16(2): e0244317. https://doi.org/10.1371/journal.pone.0244317](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244317)
 
 ## Installation <a name="installation"></a>
+
+The package can be installed via CRAN.
+
+``` r
+install.packages("ulex")
+```
 
 You can install the development version of `ulex` from GitHub with:
 
