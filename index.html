@@ -90,8 +90,11 @@
 <h2 id="installation-">Installation <a name="installation"></a>
 <a class="anchor" aria-label="anchor" href="#installation-"></a>
 </h2>
-<p>You can install the development version of <code>ulex</code> from GitHub with:</p>
+<p>The package can be installed via CRAN.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ulex"</span><span class="op">)</span></span></code></pre></div>
+<p>You can install the development version of <code>ulex</code> from GitHub with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"dime-worldbank/ulex"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -126,7 +129,7 @@
 <h3 id="setup-">Setup <a name="setup"></a>
 <a class="anchor" aria-label="anchor" href="#setup-"></a>
 </h3>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load ULEx</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dime-worldbank.github.io/ulex/">ulex</a></span><span class="op">)</span></span>
 <span></span>
@@ -148,7 +151,7 @@
 <a class="anchor" aria-label="anchor" href="#dataset-of-wards-"></a>
 </h4>
 <p>We create a dataset of Wards in Nairobi from <a href="https://gadm.org/data.html" class="external-link">GADM</a>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ken_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/geodata/man/gadm.html" class="external-link">gadm</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"KEN"</span>, level <span class="op">=</span> <span class="fl">3</span>, path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">nbo_sf</span> <span class="op">&lt;-</span> <span class="va">ken_sf</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">NAME_1</span> <span class="op"><a href="https://rspatial.github.io/terra/reference/match.html" class="external-link">%in%</a></span> <span class="st">"Nairobi"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -174,7 +177,7 @@
 <a class="anchor" aria-label="anchor" href="#dataset-of-roads-"></a>
 </h4>
 <p>We create a dataset of roads from <a href="https://www.openstreetmap.org/" class="external-link">OpenStreetMaps</a>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">roads_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/osmdata/reference/opq.html" class="external-link">opq</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">nbo_sf</span><span class="op">)</span>, timeout <span class="op">=</span> <span class="fl">999</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://docs.ropensci.org/osmdata/reference/add_osm_feature.html" class="external-link">add_osm_feature</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"highway"</span>, value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"motorway"</span>,</span>
 <span>                                             <span class="st">"trunk"</span>,</span>
@@ -209,7 +212,7 @@
 <a class="anchor" aria-label="anchor" href="#dataset-of-landmarks-landmark-gazetteer-"></a>
 </h4>
 <p>We create a gazetteer of landmarks from <a href="https://www.openstreetmap.org/" class="external-link">OpenStreetMaps</a>. From OpenStreetMaps, we use all amenities and bus stops.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Amenities --------------------------------------------------------------------</span></span>
 <span><span class="va">amenities_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/osmdata/reference/opq.html" class="external-link">opq</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="va">nbo_sf</span><span class="op">)</span>, timeout <span class="op">=</span> <span class="fl">999</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://docs.ropensci.org/osmdata/reference/add_osm_feature.html" class="external-link">add_osm_feature</a></span><span class="op">(</span>key <span class="op">=</span> <span class="st">"amenity"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -266,7 +269,7 @@
 <h4 id="map-landmark-road-and-area-dictionaries">Map landmark, road, and area dictionaries<a class="anchor" aria-label="anchor" href="#map-landmark-road-and-area-dictionaries"></a>
 </h4>
 <p>The below map shows the locations in the landmark, roads, and area dictionaries.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">roads_sf</span>,</span>
 <span>          <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"Roads"</span><span class="op">)</span>,</span>
@@ -293,7 +296,7 @@
 <a class="anchor" aria-label="anchor" href="#augment-gazetteer-"></a>
 </h3>
 <p>Here, we augment the landmark gazetteer—which increases the number of entries from about 11,000 to 50,000.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">landmarks_aug_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/augment_gazetteer.html">augment_gazetteer</a></span><span class="op">(</span><span class="va">landmarks_sf</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/dimensions.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">landmarks_sf</span><span class="op">)</span><span class="op">)</span></span>
@@ -327,7 +330,7 @@
 <a class="anchor" aria-label="anchor" href="#locate-events-"></a>
 </h3>
 <p>We geolocate the location of crashes contained in five texts.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">texts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"crash at garden city"</span>,</span>
 <span>            <span class="st">"crash occurred near garden city on thika road towards roysambu"</span>,</span>
 <span>            <span class="st">"crash at intersection of juja road and outer ring rd"</span>,</span>
@@ -340,7 +343,7 @@
 <span>                           roads <span class="op">=</span> <span class="va">roads_sf</span>,</span>
 <span>                           event_words <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"accident"</span>, <span class="st">"crash"</span>, <span class="st">"collision"</span>, </span>
 <span>                                           <span class="st">"wreck"</span>, <span class="st">"overturn"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ext</span> <span class="op">&lt;-</span> <span class="va">crashes_sf</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_buffer</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="fl">500</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_bbox.html" class="external-link">st_bbox</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -412,7 +415,7 @@
 <li>
 <strong>geometry:</strong> Geometry of event location.</li>
 </ul>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">crashes_sf</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Simple feature collection with 5 features and 17 fields</span></span>
 <span><span class="co">#&gt; Geometry type: POINT</span></span>
@@ -545,7 +548,14 @@
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=ulex" class="external-link">View on CRAN</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>
@@ -575,6 +585,7 @@
 <li><a href="https://cran.r-project.org/package=ulex" class="external-link"><img src="http://www.r-pkg.org/badges/version/ulex" alt="CRAN_Status_Badge"></a></li>
 <li><a href="https://github.com/dime-worldbank/ulex/graphs/commit-activity" class="external-link"><img src="https://img.shields.io/github/commit-activity/m/dime-worldbank/ulex" alt="activity"></a></li>
 <li><a href="https://opensource.org/license/mit" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></li>
+<li><a href="https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/dime-worldbank/ulex/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 
