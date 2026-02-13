@@ -1355,7 +1355,7 @@ locate_event_i <- function(text_i,
     df_out$landmarks_all_location <- landmark_gazetteer_orig[landmark_gazetteer_orig$name %in% locations_in_tweet_original$matched_words_text_spelling[locations_in_tweet_original$location_type %in% "landmark"],] %>%
       as.data.frame() %>%
       dplyr::mutate(location = paste0(.data$name,",",.data$lat,",",.data$lon)) %>%
-      pull(location) %>%
+      pull("location") %>%
       unique %>%
       paste(collapse=";")
   }
